@@ -11,7 +11,7 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         User::query()->updateOrCreate(
-            ['email' => 'admin@ftc.com'],
+            ['email' => 'contact@ftc.com'],
             [
                 'name' => 'FTC Admin',
                 'password' => Hash::make('admin123'),

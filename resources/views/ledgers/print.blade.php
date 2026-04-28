@@ -19,6 +19,43 @@
     </div>
 </div>
 
+<div class="mb-3">
+    <strong>Guarantor Details</strong>
+    @forelse($customer->guarantors as $guarantor)
+        <div class="border rounded p-2 mt-2">
+            {{ $guarantor->full_name ?: 'Guarantor '.$guarantor->position }}
+            | CNIC: {{ $guarantor->cnic ?: '-' }}
+            | Phone: {{ $guarantor->phone ?: '-' }}
+            @if($guarantor->relationship)
+                | Relationship: {{ $guarantor->relationship }}
+            @endif
+        </div>
+    @empty
+        <div class="text-muted mt-1">No guarantor added</div>
+    @endforelse
+</div>
+
+<div class="mb-3">
+    <strong>Product / Installment Account Details</strong>
+    <table class="table table-bordered table-sm mt-2">
+        <thead><tr><th>Account</th><th>Product</th><th class="text-end">Sale Value</th><th class="text-end">Paid</th><th class="text-end">Pending</th><th>Status</th></tr></thead>
+        <tbody>
+        @forelse($customer->sales as $sale)
+            <tr>
+                <td>{{ $sale->account_number }}</td>
+                <td>{{ $sale->product_name }}</td>
+                <td class="text-end">{{ money($sale->installment_sale_price) }}</td>
+                <td class="text-end">{{ money($sale->total_paid) }}</td>
+                <td class="text-end">{{ money($sale->pending_balance) }}</td>
+                <td>{{ readable_status($sale->status) }}</td>
+            </tr>
+        @empty
+            <tr><td colspan="6" class="text-center text-muted">No installment accounts.</td></tr>
+        @endforelse
+        </tbody>
+    </table>
+</div>
+
 <table class="table table-bordered table-sm">
     <thead><tr><th>Date</th><th>Description</th><th class="text-end">Debit</th><th class="text-end">Credit</th><th class="text-end">Balance</th><th>Method</th><th>Reference</th></tr></thead>
     <tbody>

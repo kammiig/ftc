@@ -16,6 +16,7 @@ class Customer extends Model
     public const STATUSES = ['active', 'completed', 'defaulter', 'blocked'];
 
     protected $fillable = [
+        'account_number',
         'name',
         'guardian_name',
         'cnic',
@@ -26,10 +27,6 @@ class Customer extends Model
         'photo_path',
         'cnic_front_path',
         'cnic_back_path',
-        'guarantor_name',
-        'guarantor_cnic',
-        'guarantor_phone',
-        'guarantor_address',
         'notes',
         'status',
     ];
@@ -49,15 +46,30 @@ class Customer extends Model
         return $this->hasMany(Ledger::class);
     }
 
+    public function guarantors(): HasMany
+    {
+        return $this->hasMany(CustomerGuarantor::class)->orderBy('position');
+    }
+
     public function scopeSearch(Builder $query, ?string $search): Builder
     {
         return $query->when($search, function (Builder $query) use ($search): void {
             $query->where(function (Builder $query) use ($search): void {
                 $query->where('name', 'like', "%{$search}%")
+                    ->orWhere('account_number', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
                     ->orWhere('alternate_phone', 'like', "%{$search}%")
                     ->orWhere('cnic', 'like', "%{$search}%")
-                    ->orWhere('city', 'like', "%{$search}%");
+                    ->orWhere('city', 'like', "%{$search}%")
+                    ->orWhereHas('sales', function (Builder $query) use ($search): void {
+                        $query->where('account_number', 'like', "%{$search}%")
+                            ->orWhere('product_name', 'like', "%{$search}%");
+                    })
+                    ->orWhereHas('guarantors', function (Builder $query) use ($search): void {
+                        $query->where('full_name', 'like', "%{$search}%")
+                            ->orWhere('phone', 'like', "%{$search}%")
+                            ->orWhere('cnic', 'like', "%{$search}%");
+                    });
             });
         });
     }

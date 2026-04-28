@@ -13,10 +13,11 @@
         @endif
         <div>
             <div class="h5 mb-0">{{ $customer->name }}</div>
-            <div class="text-muted">{{ $customer->phone }} {{ $customer->cnic ? '| '.$customer->cnic : '' }}</div>
+            <div class="text-muted">{{ $customer->account_number }} | {{ $customer->phone }} {{ $customer->cnic ? '| '.$customer->cnic : '' }}</div>
         </div>
     </div>
     <div class="d-flex gap-2">
+        <a href="{{ route('customers.print', $customer) }}" class="btn btn-outline-secondary"><i data-lucide="printer"></i> Profile</a>
         <a href="{{ route('customers.ledger', $customer) }}" class="btn btn-outline-dark"><i data-lucide="book-open"></i> Ledger</a>
         <a href="{{ route('sales.create', ['customer_id' => $customer->id]) }}" class="btn btn-primary"><i data-lucide="file-plus-2"></i> Sale</a>
         <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-primary"><i data-lucide="pencil"></i></a>
@@ -36,22 +37,55 @@
             <div class="card-header bg-white"><strong>Personal Details</strong></div>
             <div class="card-body">
                 <dl class="row mb-0">
+                    <dt class="col-5">Account</dt><dd class="col-7">{{ $customer->account_number }}</dd>
                     <dt class="col-5">Father/Husband</dt><dd class="col-7">{{ $customer->guardian_name ?: '-' }}</dd>
+                    <dt class="col-5">CNIC</dt><dd class="col-7">{{ $customer->cnic ?: '-' }}</dd>
                     <dt class="col-5">Address</dt><dd class="col-7">{{ $customer->address ?: '-' }}</dd>
                     <dt class="col-5">City</dt><dd class="col-7">{{ $customer->city ?: '-' }}</dd>
                     <dt class="col-5">Status</dt><dd class="col-7">@include('partials.status', ['status' => $customer->status])</dd>
                 </dl>
             </div>
         </div>
+        <div class="card mb-3">
+            <div class="card-header bg-white"><strong>Uploaded Documents</strong></div>
+            <div class="card-body d-flex flex-wrap gap-2">
+                @if($customer->photo_path)
+                    <img class="avatar" src="{{ \Illuminate\Support\Facades\Storage::url($customer->photo_path) }}" alt="Customer photo">
+                @endif
+                @if($customer->cnic_front_path)
+                    <img class="avatar" src="{{ \Illuminate\Support\Facades\Storage::url($customer->cnic_front_path) }}" alt="CNIC front">
+                @endif
+                @if($customer->cnic_back_path)
+                    <img class="avatar" src="{{ \Illuminate\Support\Facades\Storage::url($customer->cnic_back_path) }}" alt="CNIC back">
+                @endif
+                @if(! $customer->photo_path && ! $customer->cnic_front_path && ! $customer->cnic_back_path)
+                    <span class="text-muted">No documents uploaded.</span>
+                @endif
+            </div>
+        </div>
         <div class="card">
-            <div class="card-header bg-white"><strong>Guarantor</strong></div>
+            <div class="card-header bg-white"><strong>Guarantors</strong></div>
             <div class="card-body">
-                <dl class="row mb-0">
-                    <dt class="col-5">Name</dt><dd class="col-7">{{ $customer->guarantor_name ?: '-' }}</dd>
-                    <dt class="col-5">CNIC</dt><dd class="col-7">{{ $customer->guarantor_cnic ?: '-' }}</dd>
-                    <dt class="col-5">Phone</dt><dd class="col-7">{{ $customer->guarantor_phone ?: '-' }}</dd>
-                    <dt class="col-5">Address</dt><dd class="col-7">{{ $customer->guarantor_address ?: '-' }}</dd>
-                </dl>
+                @forelse($customer->guarantors as $guarantor)
+                    <div class="border rounded p-3 mb-2">
+                        <div class="d-flex gap-2 align-items-start">
+                            @if($guarantor->photo_path)
+                                <img class="avatar" src="{{ \Illuminate\Support\Facades\Storage::url($guarantor->photo_path) }}" alt="{{ $guarantor->full_name }}">
+                            @endif
+                            <dl class="row mb-0 flex-grow-1">
+                                <dt class="col-5">Name</dt><dd class="col-7">{{ $guarantor->full_name ?: '-' }}</dd>
+                                <dt class="col-5">Father/Husband</dt><dd class="col-7">{{ $guarantor->guardian_name ?: '-' }}</dd>
+                                <dt class="col-5">CNIC</dt><dd class="col-7">{{ $guarantor->cnic ?: '-' }}</dd>
+                                <dt class="col-5">Phone</dt><dd class="col-7">{{ $guarantor->phone ?: '-' }}</dd>
+                                <dt class="col-5">Alt Phone</dt><dd class="col-7">{{ $guarantor->alternate_phone ?: '-' }}</dd>
+                                <dt class="col-5">Relationship</dt><dd class="col-7">{{ $guarantor->relationship ?: '-' }}</dd>
+                                <dt class="col-5">Address</dt><dd class="col-7">{{ $guarantor->address ?: '-' }}</dd>
+                            </dl>
+                        </div>
+                    </div>
+                @empty
+                    <div class="text-muted">No guarantor added</div>
+                @endforelse
             </div>
         </div>
     </div>
@@ -97,6 +131,27 @@
                         </tr>
                     @empty
                         <tr><td colspan="5" class="text-center text-muted py-4">No ledger entries.</td></tr>
+                    @endforelse
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="card mt-3">
+            <div class="card-header bg-white"><strong>Payment History</strong></div>
+            <div class="table-responsive">
+                <table class="table mb-0">
+                    <thead><tr><th>Date</th><th>Receipt</th><th>Account</th><th>Amount</th><th>Method</th></tr></thead>
+                    <tbody>
+                    @forelse($customer->payments as $payment)
+                        <tr>
+                            <td>{{ $payment->payment_date?->format('d M Y') }}</td>
+                            <td><a href="{{ route('payments.receipt', $payment) }}">{{ $payment->receipt_number }}</a></td>
+                            <td>{{ $payment->sale?->account_number }}</td>
+                            <td>{{ money($payment->amount) }}</td>
+                            <td>{{ $payment->payment_method }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="5" class="text-center text-muted py-4">No payments found.</td></tr>
                     @endforelse
                     </tbody>
                 </table>

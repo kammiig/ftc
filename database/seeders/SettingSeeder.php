@@ -11,10 +11,10 @@ class SettingSeeder extends Seeder
     {
         $settings = [
             'company_name' => 'FTC',
-            'company_logo' => '',
+            'company_logo' => 'assets/images/ftc-logo.png',
             'currency_symbol' => 'PKR',
             'company_phone' => '',
-            'company_email' => 'admin@ftc.com',
+            'company_email' => 'contact@ftc.com',
             'company_address' => '',
             'receipt_footer_text' => 'Thank you for your payment.',
             'ledger_footer_text' => 'This ledger is system generated and subject to verification.',

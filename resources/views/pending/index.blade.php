@@ -57,6 +57,7 @@
                 <label class="form-check"><input type="checkbox" class="form-check-input" name="overdue_only" value="1" @checked(request('overdue_only'))> Overdue only</label>
                 <label class="form-check"><input type="checkbox" class="form-check-input" name="due_today" value="1" @checked(request('due_today'))> Due today</label>
                 <label class="form-check"><input type="checkbox" class="form-check-input" name="due_week" value="1" @checked(request('due_week'))> Due this week</label>
+                <label class="form-check"><input type="checkbox" class="form-check-input" name="due_month" value="1" @checked(request('due_month'))> Due this month</label>
             </div>
         </form>
     </div>
@@ -68,22 +69,28 @@
             <div class="card-header bg-white"><strong>Open Installments</strong></div>
             <div class="table-responsive">
                 <table class="table table-hover mb-0">
-                    <thead><tr><th>Due Date</th><th>Customer</th><th>Product</th><th>Account</th><th>Due</th><th>Paid</th><th>Remaining</th><th>Status</th><th></th></tr></thead>
+                    <thead><tr><th>Due Date</th><th>Customer</th><th>Guarantor Phone</th><th>Product</th><th>Account</th><th>Due</th><th>Paid</th><th>Remaining</th><th>Status</th><th></th></tr></thead>
                     <tbody>
                     @forelse($schedules as $schedule)
                         <tr>
                             <td>{{ $schedule->due_date?->format('d M Y') }}<br><small class="text-muted">{{ max(0, (int) $schedule->due_date?->diffInDays(now(), false)) }} days overdue</small></td>
                             <td>{{ $schedule->customer?->name }}<br><small class="text-muted">{{ $schedule->customer?->phone }}</small></td>
+                            <td>{{ $schedule->customer?->guarantors->pluck('phone')->filter()->implode(', ') ?: '-' }}</td>
                             <td>{{ $schedule->sale?->product_name }}</td>
                             <td><a href="{{ route('sales.show', $schedule->sale) }}">{{ $schedule->sale?->account_number }}</a></td>
                             <td>{{ money($schedule->due_amount) }}</td>
                             <td>{{ money($schedule->paid_amount) }}</td>
                             <td>{{ money($schedule->remaining_amount) }}</td>
                             <td>@include('partials.status', ['status' => $schedule->status])</td>
-                            <td class="text-end"><a class="btn btn-sm btn-success" href="{{ route('payments.create', ['sale_id' => $schedule->installment_sale_id, 'schedule_id' => $schedule->id]) }}">Collect</a></td>
+                            <td class="text-end">
+                                <div class="btn-group btn-group-sm">
+                                    <a class="btn btn-outline-dark" href="{{ route('customers.ledger', $schedule->customer) }}">Ledger</a>
+                                    <a class="btn btn-success" href="{{ route('payments.create', ['sale_id' => $schedule->installment_sale_id, 'schedule_id' => $schedule->id]) }}">Collect</a>
+                                </div>
+                            </td>
                         </tr>
                     @empty
-                        <tr><td colspan="9" class="text-center text-muted py-5">No open installments found.</td></tr>
+                        <tr><td colspan="10" class="text-center text-muted py-5">No open installments found.</td></tr>
                     @endforelse
                     </tbody>
                 </table>

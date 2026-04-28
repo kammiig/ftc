@@ -4,8 +4,8 @@ Professional Laravel web application for managing installment sales, customers, 
 
 ## Stack
 
-- PHP 8.2+
-- Laravel `^12.0 || ^13.0`
+- PHP 8.3+
+- Laravel `^13.0`
 - MySQL / MariaDB
 - Blade templates
 - Bootstrap 5
@@ -31,7 +31,7 @@ Professional Laravel web application for managing installment sales, customers, 
 ## Default Admin
 
 ```text
-Email: admin@ftc.com
+Email: contact@ftc.com
 Password: admin123
 ```
 
@@ -127,6 +127,39 @@ git push -u origin main
 
 ## Backup
 
+The portal includes an Admin-only backup page at `Backups`.
+
+Backup types:
+
+- Database-only backup
+- Full backup including database, uploaded customer/product/guarantor images, CNIC images, and the FTC logo
+
+Backup ZIP files are stored outside the public web root in:
+
+```text
+storage/app/backups
+```
+
+Only logged-in Admin users can create, download, and delete backups.
+
+## Automatic Backup Cron
+
+For cPanel cron jobs, use one of these commands.
+
+Full backup:
+
+```bash
+cd /home/USERNAME/ftc-app && /usr/local/bin/php artisan ftc:backup full >> /home/USERNAME/ftc_backup.log 2>&1
+```
+
+Database-only backup:
+
+```bash
+cd /home/USERNAME/ftc-app && /usr/local/bin/php artisan ftc:backup database >> /home/USERNAME/ftc_backup.log 2>&1
+```
+
+## Manual Backup Without Portal
+
 Back up both database and uploaded files.
 
 Database:
@@ -142,6 +175,36 @@ zip -r ftc_uploads_backup.zip storage/app/public
 ```
 
 On cPanel, use phpMyAdmin Export for the database and File Manager backup/compress for project files.
+
+## How to Move FTC Portal to Another Domain
+
+1. Log in to the old portal as Admin and create a full backup from `Backups`.
+2. Download the full backup ZIP.
+3. Upload the project source to the new hosting account.
+4. Create a new MySQL database and database user.
+5. Import the SQL file from the backup ZIP into the new database.
+6. Upload the backed-up `uploads` files into `storage/app/public`.
+7. Confirm `public/assets/images/ftc-logo.png` exists on the new hosting account.
+8. Update `.env` with the new database credentials.
+9. Update `APP_URL` in `.env` with the new domain.
+10. Set permissions for `storage` and `bootstrap/cache`.
+11. Run `php artisan storage:link` or create the storage link manually from cPanel.
+12. Clear Laravel cache:
+
+```bash
+php artisan optimize:clear
+php artisan config:cache
+php artisan route:cache
+php artisan view:cache
+```
+
+13. Test login with the admin account.
+14. Test dashboard totals.
+15. Test a customer profile.
+16. Test customer ledger and ledger print.
+17. Test receipt print.
+18. Test reports.
+19. Test backup creation and download on the new domain.
 
 ## cPanel Deployment
 

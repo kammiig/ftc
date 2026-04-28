@@ -24,6 +24,7 @@
             <thead>
             <tr>
                 <th>Customer</th>
+                <th>Account</th>
                 <th>CNIC</th>
                 <th>Phone</th>
                 <th>City</th>
@@ -48,6 +49,7 @@
                             </div>
                         </div>
                     </td>
+                    <td>{{ $customer->account_number }}</td>
                     <td>{{ $customer->cnic ?: '-' }}</td>
                     <td>{{ $customer->phone }}</td>
                     <td>{{ $customer->city ?: '-' }}</td>
@@ -61,7 +63,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="7" class="text-center text-muted py-5">No customers found.</td></tr>
+                <tr><td colspan="8" class="text-center text-muted py-5">No customers found.</td></tr>
             @endforelse
             </tbody>
         </table>

@@ -21,6 +21,18 @@
     ];
 @endphp
 
+<div class="card mb-4">
+    <div class="card-body">
+        <form method="GET" action="{{ route('customers.index') }}" class="d-flex flex-wrap gap-2 align-items-center">
+            <label class="fw-semibold me-2">Quick Search</label>
+            <input class="form-control flex-grow-1" style="min-width: 260px" name="search" placeholder="Customer name, CNIC, phone, customer account, installment account">
+            <button class="btn btn-primary"><i data-lucide="search"></i> Search</button>
+            <a class="btn btn-outline-secondary" href="{{ route('pending.index', ['due_today' => 1]) }}">Due Today</a>
+            <a class="btn btn-outline-danger" href="{{ route('pending.index', ['overdue_only' => 1]) }}">Overdue</a>
+        </form>
+    </div>
+</div>
+
 <div class="row g-3 mb-4">
     @foreach($cards as $card)
         <div class="col-12 col-sm-6 col-xl-3">
@@ -181,7 +193,7 @@
             datasets: [{
                 label: 'Received',
                 data: chart.data,
-                backgroundColor: '#0f766e',
+                backgroundColor: '#082c9d',
                 borderRadius: 6
             }]
         },

@@ -57,7 +57,7 @@ class LedgerController extends Controller
             ->get();
 
         return [
-            'customer' => $customer->load('sales'),
+            'customer' => $customer->load(['sales', 'guarantors']),
             'ledgers' => $ledgers,
             'totalDebit' => (float) $ledgers->sum('debit'),
             'totalCredit' => (float) $ledgers->sum('credit'),

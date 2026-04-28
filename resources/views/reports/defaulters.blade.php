@@ -4,7 +4,10 @@
 @section('subtitle', 'Customers with overdue installment accounts')
 
 @section('content')
-<button class="btn btn-outline-dark mb-3 no-print" onclick="window.print()"><i data-lucide="printer"></i> Print / PDF</button>
+<div class="d-flex gap-2 mb-3 no-print">
+    <a class="btn btn-outline-success" href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}"><i data-lucide="download"></i> CSV</a>
+    <button class="btn btn-outline-dark" onclick="window.print()"><i data-lucide="printer"></i> Print / PDF</button>
+</div>
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover mb-0">

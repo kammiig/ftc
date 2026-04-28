@@ -16,7 +16,7 @@ class PendingPaymentController extends Controller
         $installments->syncOverdues();
 
         $query = InstallmentSchedule::query()
-            ->with(['customer', 'sale'])
+            ->with(['customer.guarantors', 'sale'])
             ->open()
             ->when($request->filled('search'), function ($query) use ($request): void {
                 $search = $request->string('search')->toString();
@@ -37,6 +37,7 @@ class PendingPaymentController extends Controller
             ->when($request->boolean('overdue_only'), fn ($query) => $query->whereDate('due_date', '<', now()->toDateString()))
             ->when($request->boolean('due_today'), fn ($query) => $query->whereDate('due_date', now()->toDateString()))
             ->when($request->boolean('due_week'), fn ($query) => $query->whereBetween('due_date', [now()->toDateString(), now()->endOfWeek()->toDateString()]))
+            ->when($request->boolean('due_month'), fn ($query) => $query->whereBetween('due_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()]))
             ->orderBy('due_date')
             ->paginate(20)
             ->withQueryString();

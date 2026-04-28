@@ -7,10 +7,13 @@
 @php
     $reports = [
         ['title' => 'Monthly Received Payments', 'route' => route('reports.payments'), 'icon' => 'wallet'],
+        ['title' => 'Date-wise Payment Report', 'route' => route('reports.date-wise-payments'), 'icon' => 'calendar-days'],
+        ['title' => 'Monthly Collection', 'route' => route('reports.monthly-collection'), 'icon' => 'calendar-check'],
         ['title' => 'Monthly Pending Payments', 'route' => route('reports.pending'), 'icon' => 'hourglass'],
         ['title' => 'Overdue Customers', 'route' => route('reports.overdue'), 'icon' => 'triangle-alert'],
         ['title' => 'Customer Ledger Report', 'route' => route('reports.customer-ledgers'), 'icon' => 'book-open'],
         ['title' => 'Product Installment Sales', 'route' => route('reports.sales'), 'icon' => 'package-check'],
+        ['title' => 'Product-wise Sale Report', 'route' => route('reports.product-wise-sales'), 'icon' => 'boxes'],
         ['title' => 'Total Investment', 'route' => route('reports.investment'), 'icon' => 'landmark'],
         ['title' => 'Profit Report', 'route' => route('reports.profit'), 'icon' => 'trending-up'],
         ['title' => 'Active Accounts', 'route' => route('reports.active'), 'icon' => 'activity'],

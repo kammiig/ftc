@@ -5,6 +5,13 @@
 
 @section('content')
 <div class="toolbar mb-3">
+    <div class="d-flex align-items-center gap-2">
+        <img src="{{ company_logo_url() }}" alt="FTC logo" style="height: 42px; width: 42px; object-fit: contain">
+        <div>
+            <strong>{{ company_setting('company_name', 'FTC') }}</strong>
+            <div class="text-muted small">{{ company_setting('company_email', 'contact@ftc.com') }}</div>
+        </div>
+    </div>
     <form method="GET" class="d-flex flex-wrap gap-2">
         <input type="date" class="form-control" name="from" value="{{ $from }}" style="width: 170px">
         <input type="date" class="form-control" name="to" value="{{ $to }}" style="width: 170px">
@@ -25,7 +32,7 @@
 <div class="card">
     <div class="card-header bg-white">
         <strong>{{ $customer->name }}</strong>
-        <span class="text-muted ms-2">{{ $customer->phone }} {{ $customer->cnic ? '| '.$customer->cnic : '' }}</span>
+        <span class="text-muted ms-2">{{ $customer->account_number }} | {{ $customer->phone }} {{ $customer->cnic ? '| '.$customer->cnic : '' }}</span>
     </div>
     <div class="table-responsive">
         <table class="table table-hover mb-0">

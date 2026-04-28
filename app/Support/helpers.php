@@ -14,6 +14,21 @@ if (! function_exists('company_setting')) {
     }
 }
 
+if (! function_exists('company_logo_url')) {
+    function company_logo_url(): string
+    {
+        $logo = company_setting('company_logo');
+
+        if ($logo) {
+            return str_starts_with($logo, 'assets/')
+                ? asset($logo)
+                : \Illuminate\Support\Facades\Storage::url($logo);
+        }
+
+        return asset('assets/images/ftc-logo.png');
+    }
+}
+
 if (! function_exists('money')) {
     function money(float|int|string|null $amount): string
     {
@@ -42,8 +57,8 @@ if (! function_exists('status_badge_class')) {
         return match (strtolower((string) $status)) {
             'paid', 'completed', 'available' => 'success',
             'active' => 'primary',
-            'partial', 'pending' => 'warning text-dark',
-            'overdue', 'defaulter', 'blocked', 'out_of_stock' => 'danger',
+            'partial', 'pending', 'running' => 'warning text-dark',
+            'overdue', 'defaulter', 'blocked', 'out_of_stock', 'failed' => 'danger',
             'cancelled', 'inactive', 'sold' => 'secondary',
             default => 'primary',
         };

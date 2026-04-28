@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Models\ActivityLog;
 use App\Models\InstallmentSale;
 use App\Models\Ledger;
 use App\Models\Payment;
@@ -23,6 +24,7 @@ class LedgerService
         ]);
 
         $this->recalculateCustomerBalances($sale->customer_id);
+        ActivityLog::record('ledger_updated', 'Ledger debit posted for '.$sale->account_number, $ledger);
 
         return $ledger->refresh();
     }
@@ -45,6 +47,7 @@ class LedgerService
         ]);
 
         $this->recalculateCustomerBalances($payment->customer_id);
+        ActivityLog::record('ledger_updated', 'Ledger credit posted for '.$payment->receipt_number, $ledger);
 
         return $ledger->refresh();
     }

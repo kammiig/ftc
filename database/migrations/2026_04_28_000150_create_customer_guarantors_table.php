@@ -8,31 +8,30 @@ return new class extends Migration
 {
     public function up(): void
     {
-        Schema::create('customers', function (Blueprint $table): void {
+        Schema::create('customer_guarantors', function (Blueprint $table): void {
             $table->id();
-            $table->string('account_number')->unique();
-            $table->string('name');
+            $table->foreignId('customer_id')->constrained()->cascadeOnDelete();
+            $table->unsignedTinyInteger('position');
+            $table->string('full_name')->nullable();
             $table->string('guardian_name')->nullable();
-            $table->string('cnic')->nullable()->unique();
-            $table->string('phone');
+            $table->string('cnic')->nullable();
+            $table->string('phone')->nullable();
             $table->string('alternate_phone')->nullable();
             $table->text('address')->nullable();
-            $table->string('city')->nullable();
+            $table->string('relationship')->nullable();
             $table->string('photo_path')->nullable();
             $table->string('cnic_front_path')->nullable();
             $table->string('cnic_back_path')->nullable();
             $table->text('notes')->nullable();
-            $table->string('status')->default('active')->index();
             $table->timestamps();
-            $table->softDeletes();
 
-            $table->index(['name', 'phone']);
-            $table->index('account_number');
+            $table->unique(['customer_id', 'position']);
+            $table->index(['phone', 'cnic']);
         });
     }
 
     public function down(): void
     {
-        Schema::dropIfExists('customers');
+        Schema::dropIfExists('customer_guarantors');
     }
 };

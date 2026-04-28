@@ -4,8 +4,7 @@ This guide deploys FTC Installment Management System on shared cPanel hosting wi
 
 ## 1. Hosting Requirements
 
-- PHP 8.2+ for Laravel 12
-- PHP 8.3+ if Composer resolves Laravel 13
+- PHP 8.3+ for Laravel 13
 - MySQL 5.7+ or MariaDB 10.3+
 - PHP extensions commonly required by Laravel: BCMath, Ctype, cURL, DOM, Fileinfo, JSON, Mbstring, OpenSSL, PDO, PDO MySQL, Tokenizer, XML
 - Composer access through Terminal/SSH is recommended
@@ -106,7 +105,7 @@ php artisan migrate --seed --force
 This creates all tables and the default admin user:
 
 ```text
-admin@ftc.com / admin123
+contact@ftc.com / admin123
 ```
 
 ## 8. Storage Link
@@ -171,7 +170,7 @@ php artisan view:cache
 Open your domain and login:
 
 ```text
-Email: admin@ftc.com
+Email: contact@ftc.com
 Password: admin123
 ```
 
@@ -182,7 +181,52 @@ Then:
 3. Add products and customers.
 4. Start creating installment sales.
 
-## 12. Database Backup
+## 12. Portal Backup Management
+
+The application includes an Admin-only backup page:
+
+```text
+Backups
+```
+
+Supported backup types:
+
+- Database-only backup
+- Full backup with database and uploaded files
+
+Backup files are stored privately in:
+
+```text
+storage/app/backups
+```
+
+They are not accessible by direct browser URL. Admin users must download them through the protected portal route.
+
+## 13. cPanel Cron Job for Automatic Backup
+
+In cPanel, open `Cron Jobs` and add one of these commands.
+
+Daily full backup:
+
+```bash
+cd /home/USERNAME/ftc-app && /usr/local/bin/php artisan ftc:backup full >> /home/USERNAME/ftc_backup.log 2>&1
+```
+
+Daily database-only backup:
+
+```bash
+cd /home/USERNAME/ftc-app && /usr/local/bin/php artisan ftc:backup database >> /home/USERNAME/ftc_backup.log 2>&1
+```
+
+If your host uses a different PHP path, check cPanel Terminal with:
+
+```bash
+which php
+```
+
+and replace `/usr/local/bin/php`.
+
+## 14. Database Backup
 
 Use cPanel `Backup` or `phpMyAdmin > Export`.
 
@@ -192,7 +236,7 @@ Command line:
 mysqldump -u USERNAME_ftcuser -p USERNAME_ftc > ftc_backup.sql
 ```
 
-## 13. File Backup
+## 15. File Backup
 
 Back up:
 
@@ -208,7 +252,22 @@ storage/app/public
 database backups
 ```
 
-## 14. Updates From GitHub
+## 16. Moving to Another Domain
+
+1. Create a full backup from the old portal.
+2. Download the backup ZIP.
+3. Upload the project files to the new hosting account.
+4. Create a new MySQL database and user.
+5. Import the SQL file from the backup ZIP.
+6. Upload backed-up files from `uploads` into `storage/app/public`.
+7. Update `.env` database credentials.
+8. Update `APP_URL` to the new domain.
+9. Set permissions for `storage` and `bootstrap/cache`.
+10. Create the storage link.
+11. Clear and rebuild Laravel cache.
+12. Test login, dashboard, customer profile, ledger, receipt print, reports, and backup system.
+
+## 17. Updates From GitHub
 
 ```bash
 cd /home/USERNAME/ftc-app

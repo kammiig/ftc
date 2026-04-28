@@ -5,9 +5,12 @@
 
 @section('content')
 <div class="toolbar mb-3">
-    <div>
-        <h2 class="h5 mb-0">{{ $payment->receipt_number }}</h2>
-        <div class="text-muted">{{ $payment->payment_date?->format('d M Y') }}</div>
+    <div class="d-flex align-items-center gap-2">
+        <img src="{{ company_logo_url() }}" alt="FTC logo" style="height: 46px; width: 46px; object-fit: contain">
+        <div>
+            <h2 class="h5 mb-0">{{ $payment->receipt_number }}</h2>
+            <div class="text-muted">{{ company_setting('company_email', 'contact@ftc.com') }} | {{ $payment->payment_date?->format('d M Y') }}</div>
+        </div>
     </div>
     <a href="{{ route('payments.print', $payment) }}" class="btn btn-outline-dark"><i data-lucide="printer"></i> Print / PDF</a>
 </div>

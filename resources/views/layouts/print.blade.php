@@ -53,15 +53,11 @@
 <main class="print-page">
     <div class="d-flex align-items-start justify-content-between gap-3 mb-4">
         <div class="d-flex align-items-center gap-3">
-            @if(company_setting('company_logo'))
-                <img src="{{ \Illuminate\Support\Facades\Storage::url(company_setting('company_logo')) }}" class="print-logo" alt="Logo">
-            @else
-                <div class="print-logo d-flex align-items-center justify-content-center fw-bold">FTC</div>
-            @endif
+            <img src="{{ company_logo_url() }}" class="print-logo" alt="FTC logo">
             <div>
                 <h1 class="h4 mb-1">{{ company_setting('company_name', 'FTC') }}</h1>
                 <div>{{ company_setting('company_address', '') }}</div>
-                <div>{{ company_setting('company_phone', '') }} {{ company_setting('company_email') ? '| '.company_setting('company_email') : '' }}</div>
+                <div>{{ company_setting('company_phone', '') }} | {{ company_setting('company_email', 'contact@ftc.com') }}</div>
             </div>
         </div>
         <button onclick="window.print()" class="btn btn-dark btn-sm no-print">Print / PDF</button>

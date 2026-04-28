@@ -1,36 +1,35 @@
 @extends('layouts.app')
 
-@section('title', 'Daily Collection')
-@section('subtitle', $date)
+@section('title', 'Monthly Collection Report')
+@section('subtitle', 'Month-wise received payment totals')
 
 @section('content')
 <form method="GET" class="d-flex flex-wrap gap-2 mb-3 no-print">
-    <input type="date" class="form-control" style="width: 180px" name="date" value="{{ $date }}">
+    <input type="date" class="form-control" style="width: 170px" name="from" value="{{ $from }}">
+    <input type="date" class="form-control" style="width: 170px" name="to" value="{{ $to }}">
     <button class="btn btn-outline-primary"><i data-lucide="filter"></i></button>
     <a class="btn btn-outline-success" href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}"><i data-lucide="download"></i> CSV</a>
     <button class="btn btn-outline-dark" type="button" onclick="window.print()"><i data-lucide="printer"></i> Print / PDF</button>
 </form>
+
 <div class="card mb-3"><div class="card-body"><div class="text-muted small">Total Collection</div><div class="h4 mb-0">{{ money($total) }}</div></div></div>
+
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
-            <thead><tr><th>Receipt</th><th>Customer</th><th>Account</th><th>Amount</th><th>Method</th><th>Received By</th></tr></thead>
+            <thead><tr><th>Month</th><th>Payments</th><th class="text-end">Total Received</th></tr></thead>
             <tbody>
-            @forelse($payments as $payment)
+            @forelse($rows as $row)
                 <tr>
-                    <td>{{ $payment->receipt_number }}</td>
-                    <td>{{ $payment->customer?->name }}</td>
-                    <td>{{ $payment->sale?->account_number }}</td>
-                    <td>{{ money($payment->amount) }}</td>
-                    <td>{{ $payment->payment_method }}</td>
-                    <td>{{ $payment->received_by }}</td>
+                    <td>{{ \Carbon\Carbon::create((int) $row->year, (int) $row->month)->format('M Y') }}</td>
+                    <td>{{ $row->payments_count }}</td>
+                    <td class="text-end">{{ money($row->total_amount) }}</td>
                 </tr>
             @empty
-                <tr><td colspan="6" class="text-center text-muted py-5">No payments on this date.</td></tr>
+                <tr><td colspan="3" class="text-center text-muted py-5">No collections found.</td></tr>
             @endforelse
             </tbody>
         </table>
     </div>
-    <div class="card-footer bg-white no-print">{{ $payments->links() }}</div>
 </div>
 @endsection

@@ -53,29 +53,77 @@
             </div>
         </div>
 
-        <div class="card">
-            <div class="card-body">
-                <div class="form-section-title">Guarantor Details</div>
-                <div class="row g-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Guarantor name</label>
-                        <input class="form-control" name="guarantor_name" value="{{ old('guarantor_name', $customer->guarantor_name) }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Guarantor CNIC</label>
-                        <input class="form-control" name="guarantor_cnic" value="{{ old('guarantor_cnic', $customer->guarantor_cnic) }}">
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Guarantor phone</label>
-                        <input class="form-control" name="guarantor_phone" value="{{ old('guarantor_phone', $customer->guarantor_phone) }}">
-                    </div>
-                    <div class="col-12">
-                        <label class="form-label">Guarantor address</label>
-                        <textarea class="form-control" name="guarantor_address" rows="2">{{ old('guarantor_address', $customer->guarantor_address) }}</textarea>
+        @foreach([1, 2] as $position)
+            @php($guarantor = $guarantors[$position])
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="form-section-title">Guarantor {{ $position }} Details</div>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label">Full name</label>
+                            <input class="form-control" name="guarantors[{{ $position }}][full_name]" value="{{ old("guarantors.$position.full_name", $guarantor->full_name) }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Father / husband name</label>
+                            <input class="form-control" name="guarantors[{{ $position }}][guardian_name]" value="{{ old("guarantors.$position.guardian_name", $guarantor->guardian_name) }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">CNIC / ID card</label>
+                            <input class="form-control" name="guarantors[{{ $position }}][cnic]" value="{{ old("guarantors.$position.cnic", $guarantor->cnic) }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Phone</label>
+                            <input class="form-control" name="guarantors[{{ $position }}][phone]" value="{{ old("guarantors.$position.phone", $guarantor->phone) }}">
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label">Alternative phone</label>
+                            <input class="form-control" name="guarantors[{{ $position }}][alternate_phone]" value="{{ old("guarantors.$position.alternate_phone", $guarantor->alternate_phone) }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Relationship</label>
+                            <input class="form-control" name="guarantors[{{ $position }}][relationship]" value="{{ old("guarantors.$position.relationship", $guarantor->relationship) }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">Photo</label>
+                            <input class="form-control js-image-input" type="file" name="guarantors[{{ $position }}][photo]" accept="image/*" data-preview="guarantor-photo-{{ $position }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">CNIC front image</label>
+                            <input class="form-control js-image-input" type="file" name="guarantors[{{ $position }}][cnic_front]" accept="image/*" data-preview="guarantor-front-{{ $position }}">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label">CNIC back image</label>
+                            <input class="form-control js-image-input" type="file" name="guarantors[{{ $position }}][cnic_back]" accept="image/*" data-preview="guarantor-back-{{ $position }}">
+                        </div>
+                        <div class="col-12 d-flex flex-wrap gap-2">
+                            @if($guarantor->photo_path)
+                                <img id="guarantor-photo-{{ $position }}" src="{{ \Illuminate\Support\Facades\Storage::url($guarantor->photo_path) }}" alt="Guarantor photo" class="avatar">
+                            @else
+                                <img id="guarantor-photo-{{ $position }}" alt="" class="avatar d-none">
+                            @endif
+                            @if($guarantor->cnic_front_path)
+                                <img id="guarantor-front-{{ $position }}" src="{{ \Illuminate\Support\Facades\Storage::url($guarantor->cnic_front_path) }}" alt="Guarantor CNIC front" class="avatar">
+                            @else
+                                <img id="guarantor-front-{{ $position }}" alt="" class="avatar d-none">
+                            @endif
+                            @if($guarantor->cnic_back_path)
+                                <img id="guarantor-back-{{ $position }}" src="{{ \Illuminate\Support\Facades\Storage::url($guarantor->cnic_back_path) }}" alt="Guarantor CNIC back" class="avatar">
+                            @else
+                                <img id="guarantor-back-{{ $position }}" alt="" class="avatar d-none">
+                            @endif
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Address</label>
+                            <textarea class="form-control" name="guarantors[{{ $position }}][address]" rows="2">{{ old("guarantors.$position.address", $guarantor->address) }}</textarea>
+                        </div>
+                        <div class="col-md-12">
+                            <label class="form-label">Notes</label>
+                            <textarea class="form-control" name="guarantors[{{ $position }}][notes]" rows="2">{{ old("guarantors.$position.notes", $guarantor->notes) }}</textarea>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        @endforeach
     </div>
     <div class="col-lg-4">
         <div class="card">
@@ -98,3 +146,17 @@
         </div>
     </div>
 </div>
+
+@push('scripts')
+<script>
+    document.querySelectorAll('.js-image-input').forEach(input => {
+        input.addEventListener('change', event => {
+            const file = event.target.files[0];
+            const target = document.getElementById(event.target.dataset.preview);
+            if (!file || !target) return;
+            target.src = URL.createObjectURL(file);
+            target.classList.remove('d-none');
+        });
+    });
+</script>
+@endpush

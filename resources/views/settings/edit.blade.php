@@ -57,9 +57,7 @@
             <div class="card">
                 <div class="card-body">
                     <div class="form-section-title">Logo</div>
-                    @if(($settings['company_logo'] ?? null))
-                        <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['company_logo']) }}" class="img-fluid rounded mb-3" alt="Company logo">
-                    @endif
+                    <img src="{{ company_logo_url() }}" class="img-fluid rounded mb-3" alt="Company logo" style="max-height: 180px; object-fit: contain">
                     <input type="file" class="form-control mb-3" name="company_logo" accept="image/*">
                     <button class="btn btn-primary w-100"><i data-lucide="save"></i> Save Settings</button>
                 </div>

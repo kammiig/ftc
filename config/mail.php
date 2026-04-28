@@ -23,7 +23,7 @@ return [
         ],
     ],
     'from' => [
-        'address' => env('MAIL_FROM_ADDRESS', 'admin@ftc.com'),
+        'address' => env('MAIL_FROM_ADDRESS', 'contact@ftc.com'),
         'name' => env('MAIL_FROM_NAME', 'FTC'),
     ],
 ];

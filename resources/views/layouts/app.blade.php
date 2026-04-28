@@ -12,8 +12,8 @@
             --ftc-muted: #64748b;
             --ftc-border: #e5e7eb;
             --ftc-bg: #f5f7fb;
-            --ftc-sidebar: #102030;
-            --ftc-accent: #0f766e;
+            --ftc-sidebar: #0b163f;
+            --ftc-accent: #082c9d;
         }
         body {
             background: var(--ftc-bg);
@@ -76,7 +76,7 @@
             align-items: center;
             justify-content: center;
             border-radius: 8px;
-            background: #e6f4f1;
+            background: #e8edff;
             color: var(--ftc-accent);
         }
         .table thead th {
@@ -150,11 +150,7 @@
     @auth
         <aside class="sidebar d-none d-lg-flex flex-column p-3">
             <div class="d-flex align-items-center gap-2 mb-4 text-white">
-                @if(company_setting('company_logo'))
-                    <img src="{{ \Illuminate\Support\Facades\Storage::url(company_setting('company_logo')) }}" alt="FTC" class="avatar bg-white">
-                @else
-                    <span class="avatar bg-white text-dark">FTC</span>
-                @endif
+                <img src="{{ company_logo_url() }}" alt="FTC" class="avatar bg-white">
                 <div>
                     <div class="fw-bold">{{ company_setting('company_name', 'FTC') }}</div>
                     <small class="text-white-50">Installment System</small>
@@ -172,13 +168,14 @@
                     <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i data-lucide="bar-chart-3"></i> Reports</a>
                     <a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}"><i data-lucide="settings"></i> Settings</a>
                     <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}"><i data-lucide="shield-check"></i> Users</a>
+                    <a href="{{ route('backups.index') }}" class="{{ request()->routeIs('backups.*') ? 'active' : '' }}"><i data-lucide="database-backup"></i> Backups</a>
                 @endif
             </nav>
         </aside>
 
         <div class="offcanvas offcanvas-start d-lg-none no-print" tabindex="-1" id="mobileNav">
             <div class="offcanvas-header">
-                <h5 class="offcanvas-title">{{ company_setting('company_name', 'FTC') }}</h5>
+                <h5 class="offcanvas-title"><img src="{{ company_logo_url() }}" alt="FTC" style="height: 28px; width: 28px; object-fit: contain" class="me-2">{{ company_setting('company_name', 'FTC') }}</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="offcanvas" aria-label="Close"></button>
             </div>
             <div class="offcanvas-body">
@@ -193,6 +190,7 @@
                         <a class="btn btn-outline-secondary text-start" href="{{ route('reports.index') }}"><i data-lucide="bar-chart-3"></i> Reports</a>
                         <a class="btn btn-outline-secondary text-start" href="{{ route('settings.edit') }}"><i data-lucide="settings"></i> Settings</a>
                         <a class="btn btn-outline-secondary text-start" href="{{ route('users.index') }}"><i data-lucide="shield-check"></i> Users</a>
+                        <a class="btn btn-outline-secondary text-start" href="{{ route('backups.index') }}"><i data-lucide="database-backup"></i> Backups</a>
                     @endif
                 </nav>
             </div>
@@ -207,12 +205,17 @@
                         <button class="btn btn-outline-secondary btn-sm d-lg-none" type="button" data-bs-toggle="offcanvas" data-bs-target="#mobileNav" aria-controls="mobileNav" title="Menu">
                             <i data-lucide="menu"></i>
                         </button>
+                        <img src="{{ company_logo_url() }}" alt="FTC logo" class="d-none d-sm-block" style="height: 34px; width: 34px; object-fit: contain">
                         <div>
                             <h1 class="h5 mb-0">@yield('title', 'Dashboard')</h1>
                             <small class="text-muted">@yield('subtitle', now()->format('l, d M Y'))</small>
                         </div>
                     </div>
                     <div class="d-flex align-items-center gap-2">
+                        <div class="d-none d-md-block text-end me-2">
+                            <div class="fw-semibold">{{ auth()->user()->name }}</div>
+                            <small class="text-muted">{{ readable_status(auth()->user()->role) }}</small>
+                        </div>
                         <a href="{{ route('payments.create') }}" class="btn btn-success btn-sm"><i data-lucide="plus"></i> Payment</a>
                         <a href="{{ route('sales.create') }}" class="btn btn-primary btn-sm"><i data-lucide="file-plus-2"></i> Sale</a>
                         <form method="POST" action="{{ route('logout') }}">

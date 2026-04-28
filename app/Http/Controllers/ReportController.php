@@ -6,6 +6,7 @@ use App\Models\Customer;
 use App\Models\InstallmentSale;
 use App\Models\InstallmentSchedule;
 use App\Models\Payment;
+use App\Models\Product;
 use App\Services\ExportService;
 use App\Services\InstallmentService;
 use Illuminate\Database\Eloquent\Builder;
@@ -71,6 +72,36 @@ class ReportController extends Controller
             'title' => 'Pending Payments Report',
             'schedules' => $schedules->paginate(25)->withQueryString(),
             'total' => $total,
+        ]);
+    }
+
+    public function monthlyCollection(Request $request, ExportService $export): View|StreamedResponse
+    {
+        $from = $request->string('from')->toString() ?: now()->subMonths(11)->startOfMonth()->toDateString();
+        $to = $request->string('to')->toString() ?: now()->endOfMonth()->toDateString();
+
+        $rows = Payment::query()
+            ->selectRaw('YEAR(payment_date) as year, MONTH(payment_date) as month, COUNT(*) as payments_count, SUM(amount) as total_amount')
+            ->whereBetween('payment_date', [$from, $to])
+            ->groupByRaw('YEAR(payment_date), MONTH(payment_date)')
+            ->orderByRaw('YEAR(payment_date), MONTH(payment_date)')
+            ->get();
+
+        if ($request->string('export')->toString() === 'csv') {
+            return $export->csv('monthly-collection-report.csv', [
+                'Month', 'Payments', 'Total Amount',
+            ], $rows->map(fn ($row) => [
+                \Carbon\Carbon::create((int) $row->year, (int) $row->month)->format('M Y'),
+                $row->payments_count,
+                $row->total_amount,
+            ]));
+        }
+
+        return view('reports.monthly-collection', [
+            'rows' => $rows,
+            'from' => $from,
+            'to' => $to,
+            'total' => (float) $rows->sum('total_amount'),
         ]);
     }
 
@@ -165,7 +196,7 @@ class ReportController extends Controller
         ]);
     }
 
-    public function profit(Request $request): View
+    public function profit(Request $request, ExportService $export): View|StreamedResponse
     {
         $sales = InstallmentSale::query()
             ->with('customer')
@@ -177,11 +208,57 @@ class ReportController extends Controller
         $saleValue = (clone $sales)->sum('installment_sale_price');
         $profit = (clone $sales)->sum('profit_amount');
 
+        if ($request->string('export')->toString() === 'csv') {
+            return $export->csv('profit-report.csv', [
+                'Date', 'Account', 'Customer', 'Cost', 'Sale Value', 'Profit', 'Status',
+            ], $sales->get()->map(fn (InstallmentSale $sale) => [
+                $sale->installment_start_date?->format('Y-m-d'),
+                $sale->account_number,
+                $sale->customer?->name,
+                $sale->product_cost_price,
+                $sale->installment_sale_price,
+                $sale->profit_amount,
+                $sale->status,
+            ]));
+        }
+
         return view('reports.profit', [
             'sales' => $sales->paginate(25)->withQueryString(),
             'investment' => $investment,
             'saleValue' => $saleValue,
             'profit' => $profit,
+        ]);
+    }
+
+    public function productWiseSales(Request $request, ExportService $export): View|StreamedResponse
+    {
+        $rows = Product::query()
+            ->withCount('sales')
+            ->withSum('sales as sale_value', 'installment_sale_price')
+            ->withSum('sales as investment', 'product_cost_price')
+            ->withSum('sales as profit', 'profit_amount')
+            ->search($request->string('search')->toString())
+            ->status($request->string('status')->toString() ?: null)
+            ->orderBy('name')
+            ->get();
+
+        if ($request->string('export')->toString() === 'csv') {
+            return $export->csv('product-wise-sales-report.csv', [
+                'Product', 'SKU', 'Status', 'Sales Count', 'Investment', 'Sale Value', 'Profit',
+            ], $rows->map(fn (Product $product) => [
+                $product->name,
+                $product->sku,
+                $product->status,
+                $product->sales_count,
+                $product->investment,
+                $product->sale_value,
+                $product->profit,
+            ]));
+        }
+
+        return view('reports.product-wise-sales', [
+            'products' => $rows,
+            'statuses' => Product::STATUSES,
         ]);
     }
 
@@ -204,31 +281,55 @@ class ReportController extends Controller
         return $this->sales($request, $export);
     }
 
-    public function defaulters(InstallmentService $installments): View
+    public function defaulters(Request $request, InstallmentService $installments, ExportService $export): View|StreamedResponse
     {
         $installments->syncOverdues();
 
         $customers = Customer::query()
             ->where('status', 'defaulter')
-            ->with(['sales' => fn ($query) => $query->where('status', 'defaulter')])
-            ->paginate(25);
+            ->with(['sales' => fn ($query) => $query->where('status', 'defaulter')]);
+
+        if ($request->string('export')->toString() === 'csv') {
+            return $export->csv('defaulter-customers-report.csv', [
+                'Customer', 'Phone', 'CNIC', 'Accounts', 'Pending',
+            ], $customers->get()->map(fn (Customer $customer) => [
+                $customer->name,
+                $customer->phone,
+                $customer->cnic,
+                $customer->sales->pluck('account_number')->implode(', '),
+                $customer->sales->sum('pending_balance'),
+            ]));
+        }
+
+        $customers = $customers->paginate(25);
 
         return view('reports.defaulters', compact('customers'));
     }
 
-    public function dailyCollection(Request $request): View
+    public function dailyCollection(Request $request, ExportService $export): View|StreamedResponse
     {
         $date = $request->string('date')->toString() ?: now()->toDateString();
         $payments = Payment::query()
             ->with(['customer', 'sale'])
             ->whereDate('payment_date', $date)
-            ->latest()
-            ->paginate(25)
-            ->withQueryString();
+            ->latest();
+
+        if ($request->string('export')->toString() === 'csv') {
+            return $export->csv('daily-collection-'.$date.'.csv', [
+                'Receipt', 'Customer', 'Account', 'Amount', 'Method', 'Received By',
+            ], $payments->get()->map(fn (Payment $payment) => [
+                $payment->receipt_number,
+                $payment->customer?->name,
+                $payment->sale?->account_number,
+                $payment->amount,
+                $payment->payment_method,
+                $payment->received_by,
+            ]));
+        }
 
         return view('reports.daily-collection', [
             'date' => $date,
-            'payments' => $payments,
+            'payments' => $payments->paginate(25)->withQueryString(),
             'total' => Payment::query()->whereDate('payment_date', $date)->sum('amount'),
         ]);
     }

@@ -8,6 +8,7 @@
     <input type="date" class="form-control" style="width: 160px" name="from" value="{{ request('from') }}">
     <input type="date" class="form-control" style="width: 160px" name="to" value="{{ request('to') }}">
     <button class="btn btn-outline-primary"><i data-lucide="filter"></i></button>
+    <a class="btn btn-outline-success" href="{{ request()->fullUrlWithQuery(['export' => 'csv']) }}"><i data-lucide="download"></i> CSV</a>
     <button class="btn btn-outline-dark" type="button" onclick="window.print()"><i data-lucide="printer"></i> Print / PDF</button>
 </form>
 

@@ -7,7 +7,7 @@
     <div class="card border-0 shadow-sm" style="max-width: 420px; width: 100%;">
         <div class="card-body p-4">
             <div class="text-center mb-4">
-                <div class="avatar mx-auto mb-3">FTC</div>
+                <img src="{{ company_logo_url() }}" alt="FTC logo" class="mx-auto mb-3 d-block" style="height: 86px; width: 86px; object-fit: contain">
                 <h1 class="h4 mb-1">FTC Installment Management</h1>
                 <p class="text-muted mb-0">Secure admin access</p>
             </div>
@@ -15,7 +15,7 @@
                 @csrf
                 <div class="mb-3">
                     <label class="form-label">Email</label>
-                    <input type="email" name="email" value="{{ old('email', 'admin@ftc.com') }}" class="form-control" required autofocus>
+                    <input type="email" name="email" value="{{ old('email', 'contact@ftc.com') }}" class="form-control" required autofocus>
                 </div>
                 <div class="mb-3">
                     <label class="form-label">Password</label>
@@ -28,7 +28,7 @@
                 <button class="btn btn-primary w-100" type="submit">Login</button>
             </form>
             <div class="small text-muted mt-3">
-                Default: admin@ftc.com / admin123
+                Default: contact@ftc.com / admin123
             </div>
         </div>
     </div>
