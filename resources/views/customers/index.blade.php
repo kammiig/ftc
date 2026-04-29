@@ -6,7 +6,7 @@
 @section('content')
 <div class="toolbar mb-3">
     <form class="d-flex flex-wrap gap-2" method="GET">
-        <input class="form-control" style="width: 260px" name="search" value="{{ request('search') }}" placeholder="Name, phone, CNIC">
+        <input class="form-control" style="width: 260px" name="search" value="{{ request('search') }}" placeholder="Name, phone, WhatsApp, CNIC, sale account">
         <select class="form-select" style="width: 170px" name="status">
             <option value="">All statuses</option>
             @foreach($statuses as $status)
@@ -24,7 +24,6 @@
             <thead>
             <tr>
                 <th>Customer</th>
-                <th>Account</th>
                 <th>CNIC</th>
                 <th>Phone</th>
                 <th>City</th>
@@ -49,7 +48,6 @@
                             </div>
                         </div>
                     </td>
-                    <td>{{ $customer->account_number }}</td>
                     <td>{{ $customer->cnic ?: '-' }}</td>
                     <td>{{ $customer->phone }}</td>
                     <td>{{ $customer->city ?: '-' }}</td>
@@ -63,7 +61,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="8" class="text-center text-muted py-5">No customers found.</td></tr>
+                <tr><td colspan="7" class="text-center text-muted py-5">No customers found.</td></tr>
             @endforelse
             </tbody>
         </table>

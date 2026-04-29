@@ -7,6 +7,7 @@ use App\Models\Customer;
 use App\Models\InstallmentSale;
 use App\Models\Product;
 use App\Services\InstallmentService;
+use App\Services\WhatsAppService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -43,7 +44,7 @@ class InstallmentSaleController extends Controller
         ]);
     }
 
-    public function store(Request $request, InstallmentService $installments): RedirectResponse
+    public function store(Request $request, InstallmentService $installments, WhatsAppService $whatsApp): RedirectResponse
     {
         $data = $request->validate([
             'customer_id' => ['required', 'exists:customers,id'],
@@ -58,9 +59,14 @@ class InstallmentSaleController extends Controller
             'advance_reference_number' => ['nullable', 'string', 'max:191'],
             'advance_payment_date' => ['nullable', 'date'],
             'remarks' => ['nullable', 'string'],
+            'send_ledger_whatsapp' => ['nullable', 'boolean'],
         ]);
 
         $sale = $installments->createSale($data, Auth::user());
+
+        if ($request->boolean('send_ledger_whatsapp')) {
+            $this->flashWhatsAppResult($whatsApp->sendLedger($sale->customer, Auth::user(), $sale));
+        }
 
         return redirect()->route('sales.show', $sale)->with('success', 'Installment sale created and schedule generated.');
     }
@@ -103,5 +109,23 @@ class InstallmentSaleController extends Controller
         $sale->load(['customer', 'schedules' => fn ($query) => $query->orderBy('installment_number')]);
 
         return view('sales.print-schedule', compact('sale'));
+    }
+
+    private function flashWhatsAppResult(array $result): void
+    {
+        if (($result['status'] ?? null) === 'sent') {
+            session()->flash('whatsapp_status', [
+                'type' => 'success',
+                'message' => $result['message'] ?? 'WhatsApp message sent.',
+            ]);
+
+            return;
+        }
+
+        session()->flash('whatsapp_fallback', [
+            'message' => $result['message'] ?? 'WhatsApp API is unavailable.',
+            'download_url' => $result['download_url'] ?? null,
+            'whatsapp_url' => $result['whatsapp_url'] ?? null,
+        ]);
     }
 }

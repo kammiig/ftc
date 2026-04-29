@@ -19,7 +19,14 @@
     </form>
     <div class="d-flex gap-2">
         <a href="{{ route('customers.ledger.print', array_filter(['customer' => $customer->id, 'from' => $from, 'to' => $to])) }}" class="btn btn-outline-dark"><i data-lucide="printer"></i> Print / PDF</a>
+        <a href="{{ route('customers.ledger.pdf', array_filter(['customer' => $customer->id, 'from' => $from, 'to' => $to])) }}" class="btn btn-outline-primary"><i data-lucide="file-down"></i> PDF</a>
         <a href="{{ route('customers.ledger.export', array_filter(['customer' => $customer->id, 'from' => $from, 'to' => $to])) }}" class="btn btn-outline-success"><i data-lucide="download"></i> CSV</a>
+        <form method="POST" action="{{ route('customers.ledger.whatsapp', $customer) }}">
+            @csrf
+            <input type="hidden" name="from" value="{{ $from }}">
+            <input type="hidden" name="to" value="{{ $to }}">
+            <button class="btn btn-success" type="submit"><i data-lucide="send"></i> WhatsApp</button>
+        </form>
     </div>
 </div>
 
@@ -32,7 +39,7 @@
 <div class="card">
     <div class="card-header bg-white">
         <strong>{{ $customer->name }}</strong>
-        <span class="text-muted ms-2">{{ $customer->account_number }} | {{ $customer->phone }} {{ $customer->cnic ? '| '.$customer->cnic : '' }}</span>
+        <span class="text-muted ms-2">{{ $customer->phone }} {{ $customer->cnic ? '| '.$customer->cnic : '' }}</span>
     </div>
     <div class="table-responsive">
         <table class="table table-hover mb-0">

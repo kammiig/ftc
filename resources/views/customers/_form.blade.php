@@ -26,6 +26,10 @@
                         <input class="form-control" name="phone" value="{{ old('phone', $customer->phone) }}" required>
                     </div>
                     <div class="col-md-4">
+                        <label class="form-label">WhatsApp number</label>
+                        <input class="form-control" name="whatsapp_number" value="{{ old('whatsapp_number', $customer->whatsapp_number) }}">
+                    </div>
+                    <div class="col-md-4">
                         <label class="form-label">Alternative phone</label>
                         <input class="form-control" name="alternate_phone" value="{{ old('alternate_phone', $customer->alternate_phone) }}">
                     </div>

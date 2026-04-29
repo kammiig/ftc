@@ -32,6 +32,12 @@ class SettingController extends Controller
             'ledger_footer_text' => ['nullable', 'string'],
             'payment_methods' => ['required', 'string'],
             'default_due_day' => ['required', 'integer', 'min:1', 'max:28'],
+            'signature_name' => ['nullable', 'string', 'max:191'],
+            'signature_image' => ['nullable', 'image', 'max:2048'],
+            'whatsapp_api_token' => ['nullable', 'string'],
+            'whatsapp_phone_number_id' => ['nullable', 'string', 'max:191'],
+            'whatsapp_business_account_id' => ['nullable', 'string', 'max:191'],
+            'whatsapp_graph_version' => ['nullable', 'string', 'max:20'],
         ]);
 
         if ($request->hasFile('company_logo')) {
@@ -42,6 +48,16 @@ class SettingController extends Controller
             $data['company_logo'] = $request->file('company_logo')->store('settings', 'public');
         } else {
             unset($data['company_logo']);
+        }
+
+        if ($request->hasFile('signature_image')) {
+            $oldSignature = company_setting('signature_image');
+            if ($oldSignature) {
+                Storage::disk('public')->delete($oldSignature);
+            }
+            $data['signature_image'] = $request->file('signature_image')->store('settings', 'public');
+        } else {
+            unset($data['signature_image']);
         }
 
         foreach ($data as $key => $value) {

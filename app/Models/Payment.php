@@ -23,6 +23,7 @@ class Payment extends Model
         'received_by',
         'created_by',
         'remarks',
+        'receipt_pdf_path',
     ];
 
     protected function casts(): array

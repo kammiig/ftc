@@ -4,9 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\Customer;
 use App\Services\ExportService;
+use App\Services\PdfService;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
+use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class LedgerController extends Controller
 {
@@ -45,6 +47,16 @@ class LedgerController extends Controller
             'Reference',
             'Remarks',
         ], $rows);
+    }
+
+    public function pdf(Request $request, Customer $customer, PdfService $pdfService): BinaryFileResponse
+    {
+        $path = $pdfService->storeLedger($customer, null, [
+            'from' => $request->string('from')->toString() ?: null,
+            'to' => $request->string('to')->toString() ?: null,
+        ]);
+
+        return response()->download($pdfService->absolutePath($path), 'FTC-Ledger-'.$customer->id.'.pdf');
     }
 
     private function ledgerData(Request $request, Customer $customer): array

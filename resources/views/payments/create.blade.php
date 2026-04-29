@@ -64,6 +64,16 @@
                             <label class="form-label">Remarks</label>
                             <textarea class="form-control" name="remarks" rows="3">{{ old('remarks') }}</textarea>
                         </div>
+                        <div class="col-12 d-grid gap-2">
+                            <label class="form-check">
+                                <input type="checkbox" class="form-check-input" name="send_receipt_whatsapp" value="1" @checked(old('send_receipt_whatsapp'))>
+                                Send receipt to customer WhatsApp
+                            </label>
+                            <label class="form-check">
+                                <input type="checkbox" class="form-check-input" name="send_ledger_whatsapp" value="1" @checked(old('send_ledger_whatsapp'))>
+                                Send updated ledger to customer WhatsApp
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

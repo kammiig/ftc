@@ -42,6 +42,11 @@
 <p class="text-muted">{{ company_setting('receipt_footer_text') }}</p>
 <div class="d-flex justify-content-between mt-5">
     <div>Customer Signature</div>
-    <div class="signature-line">Received By</div>
+    <div class="signature-line">
+        @if(company_setting('signature_image'))
+            <img src="{{ \Illuminate\Support\Facades\Storage::url(company_setting('signature_image')) }}" alt="Signature" style="max-height: 50px; max-width: 160px; object-fit: contain; display: block; margin: 0 auto 4px">
+        @endif
+        Authorized Signature<br><strong>{{ signature_name() }}</strong>
+    </div>
 </div>
 @endsection

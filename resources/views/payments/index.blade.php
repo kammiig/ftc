@@ -34,7 +34,12 @@
                     <td>{{ money($payment->amount) }}</td>
                     <td>{{ $payment->payment_method }}</td>
                     <td>{{ $payment->reference_number ?: '-' }}</td>
-                    <td class="text-end"><a class="btn btn-sm btn-outline-dark" href="{{ route('payments.print', $payment) }}"><i data-lucide="printer"></i></a></td>
+                    <td class="text-end">
+                        <div class="btn-group btn-group-sm">
+                            <a class="btn btn-outline-dark" href="{{ route('payments.print', $payment) }}"><i data-lucide="printer"></i></a>
+                            <a class="btn btn-outline-primary" href="{{ route('payments.pdf', $payment) }}"><i data-lucide="file-down"></i></a>
+                        </div>
+                    </td>
                 </tr>
             @empty
                 <tr><td colspan="8" class="text-center text-muted py-5">No payments recorded.</td></tr>

@@ -16,11 +16,11 @@ class Customer extends Model
     public const STATUSES = ['active', 'completed', 'defaulter', 'blocked'];
 
     protected $fillable = [
-        'account_number',
         'name',
         'guardian_name',
         'cnic',
         'phone',
+        'whatsapp_number',
         'alternate_phone',
         'address',
         'city',
@@ -56,8 +56,8 @@ class Customer extends Model
         return $query->when($search, function (Builder $query) use ($search): void {
             $query->where(function (Builder $query) use ($search): void {
                 $query->where('name', 'like', "%{$search}%")
-                    ->orWhere('account_number', 'like', "%{$search}%")
                     ->orWhere('phone', 'like', "%{$search}%")
+                    ->orWhere('whatsapp_number', 'like', "%{$search}%")
                     ->orWhere('alternate_phone', 'like', "%{$search}%")
                     ->orWhere('cnic', 'like', "%{$search}%")
                     ->orWhere('city', 'like', "%{$search}%")

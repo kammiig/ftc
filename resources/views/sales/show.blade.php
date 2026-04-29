@@ -12,6 +12,10 @@
     <div class="d-flex gap-2">
         <a href="{{ route('payments.create', ['sale_id' => $sale->id]) }}" class="btn btn-success"><i data-lucide="wallet"></i> Payment</a>
         <a href="{{ route('sales.schedule.print', $sale) }}" class="btn btn-outline-dark"><i data-lucide="printer"></i> Schedule</a>
+        <form method="POST" action="{{ route('sales.ledger.whatsapp', $sale) }}">
+            @csrf
+            <button class="btn btn-outline-success" type="submit"><i data-lucide="send"></i> Ledger</button>
+        </form>
         <a href="{{ route('sales.edit', $sale) }}" class="btn btn-outline-primary"><i data-lucide="pencil"></i></a>
     </div>
 </div>

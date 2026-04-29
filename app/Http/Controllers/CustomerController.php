@@ -45,7 +45,6 @@ class CustomerController extends Controller
 
         $customer = DB::transaction(function () use ($request, $data): Customer {
             $customerData = Arr::except($data, ['guarantors']);
-            $customerData['account_number'] = $this->nextCustomerAccountNumber();
             $this->handleUploads($request, $customerData);
 
             $customer = Customer::query()->create($customerData);
@@ -137,6 +136,7 @@ class CustomerController extends Controller
             'guardian_name' => ['nullable', 'string', 'max:191'],
             'cnic' => ['nullable', 'string', 'max:50', 'unique:customers,cnic,'.$customerId],
             'phone' => ['required', 'string', 'max:50'],
+            'whatsapp_number' => ['nullable', 'string', 'max:50'],
             'alternate_phone' => ['nullable', 'string', 'max:50'],
             'address' => ['nullable', 'string'],
             'city' => ['nullable', 'string', 'max:100'],
@@ -263,15 +263,4 @@ class CustomerController extends Controller
         }
     }
 
-    private function nextCustomerAccountNumber(): string
-    {
-        $next = ((int) Customer::query()->max('id')) + 1;
-
-        do {
-            $accountNumber = 'CUS-'.now()->format('Ym').'-'.str_pad((string) $next, 5, '0', STR_PAD_LEFT);
-            $next++;
-        } while (Customer::query()->where('account_number', $accountNumber)->exists());
-
-        return $accountNumber;
-    }
 }

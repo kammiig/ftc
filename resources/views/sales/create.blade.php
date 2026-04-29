@@ -92,6 +92,12 @@
                             <label class="form-label">Remarks</label>
                             <textarea class="form-control" name="remarks" rows="2">{{ old('remarks') }}</textarea>
                         </div>
+                        <div class="col-12">
+                            <label class="form-check">
+                                <input type="checkbox" class="form-check-input" name="send_ledger_whatsapp" value="1" @checked(old('send_ledger_whatsapp'))>
+                                Send ledger to customer WhatsApp after creating sale
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>

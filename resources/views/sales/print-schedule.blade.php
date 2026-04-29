@@ -34,6 +34,6 @@
 </table>
 <div class="d-flex justify-content-between mt-5">
     <div>Printed: {{ now()->format('d M Y h:i A') }}</div>
-    <div class="signature-line">Authorized Signature</div>
+    <div class="signature-line">Authorized Signature<br><strong>{{ signature_name() }}</strong></div>
 </div>
 @endsection

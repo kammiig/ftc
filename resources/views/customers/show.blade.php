@@ -13,12 +13,17 @@
         @endif
         <div>
             <div class="h5 mb-0">{{ $customer->name }}</div>
-            <div class="text-muted">{{ $customer->account_number }} | {{ $customer->phone }} {{ $customer->cnic ? '| '.$customer->cnic : '' }}</div>
+            <div class="text-muted">{{ $customer->phone }} {{ $customer->whatsapp_number ? '| WhatsApp '.$customer->whatsapp_number : '' }} {{ $customer->cnic ? '| '.$customer->cnic : '' }}</div>
         </div>
     </div>
     <div class="d-flex gap-2">
         <a href="{{ route('customers.print', $customer) }}" class="btn btn-outline-secondary"><i data-lucide="printer"></i> Profile</a>
         <a href="{{ route('customers.ledger', $customer) }}" class="btn btn-outline-dark"><i data-lucide="book-open"></i> Ledger</a>
+        <a href="{{ route('customers.ledger.pdf', $customer) }}" class="btn btn-outline-success"><i data-lucide="download"></i> PDF</a>
+        <form method="POST" action="{{ route('customers.ledger.whatsapp', $customer) }}">
+            @csrf
+            <button class="btn btn-success" type="submit"><i data-lucide="send"></i> WhatsApp</button>
+        </form>
         <a href="{{ route('sales.create', ['customer_id' => $customer->id]) }}" class="btn btn-primary"><i data-lucide="file-plus-2"></i> Sale</a>
         <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-primary"><i data-lucide="pencil"></i></a>
     </div>
@@ -37,9 +42,9 @@
             <div class="card-header bg-white"><strong>Personal Details</strong></div>
             <div class="card-body">
                 <dl class="row mb-0">
-                    <dt class="col-5">Account</dt><dd class="col-7">{{ $customer->account_number }}</dd>
                     <dt class="col-5">Father/Husband</dt><dd class="col-7">{{ $customer->guardian_name ?: '-' }}</dd>
                     <dt class="col-5">CNIC</dt><dd class="col-7">{{ $customer->cnic ?: '-' }}</dd>
+                    <dt class="col-5">WhatsApp</dt><dd class="col-7">{{ $customer->whatsapp_number ?: $customer->phone }}</dd>
                     <dt class="col-5">Address</dt><dd class="col-7">{{ $customer->address ?: '-' }}</dd>
                     <dt class="col-5">City</dt><dd class="col-7">{{ $customer->city ?: '-' }}</dd>
                     <dt class="col-5">Status</dt><dd class="col-7">@include('partials.status', ['status' => $customer->status])</dd>

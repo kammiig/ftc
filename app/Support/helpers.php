@@ -29,6 +29,48 @@ if (! function_exists('company_logo_url')) {
     }
 }
 
+if (! function_exists('file_data_uri')) {
+    function file_data_uri(?string $absolutePath): ?string
+    {
+        if (! $absolutePath || ! is_file($absolutePath)) {
+            return null;
+        }
+
+        $mime = mime_content_type($absolutePath) ?: 'application/octet-stream';
+
+        return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($absolutePath));
+    }
+}
+
+if (! function_exists('company_logo_data_uri')) {
+    function company_logo_data_uri(): ?string
+    {
+        $logo = company_setting('company_logo');
+
+        if ($logo && ! str_starts_with($logo, 'assets/')) {
+            return file_data_uri(storage_path('app/public/'.$logo));
+        }
+
+        return file_data_uri(public_path($logo ?: 'assets/images/ftc-logo.png'));
+    }
+}
+
+if (! function_exists('signature_name')) {
+    function signature_name(): string
+    {
+        return company_setting('signature_name', 'Malik') ?: 'Malik';
+    }
+}
+
+if (! function_exists('signature_image_data_uri')) {
+    function signature_image_data_uri(): ?string
+    {
+        $signature = company_setting('signature_image');
+
+        return $signature ? file_data_uri(storage_path('app/public/'.$signature)) : null;
+    }
+}
+
 if (! function_exists('money')) {
     function money(float|int|string|null $amount): string
     {

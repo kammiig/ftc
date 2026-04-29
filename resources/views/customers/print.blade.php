@@ -7,9 +7,9 @@
     <div>
         <h2 class="h5 mb-1">Customer Profile</h2>
         <strong>{{ $customer->name }}</strong><br>
-        Account: {{ $customer->account_number }}<br>
         CNIC: {{ $customer->cnic ?: '-' }}<br>
         Phone: {{ $customer->phone }} {{ $customer->alternate_phone ? '| '.$customer->alternate_phone : '' }}<br>
+        WhatsApp: {{ $customer->whatsapp_number ?: $customer->phone }}<br>
         Address: {{ $customer->address ?: '-' }}
     </div>
     @if($customer->photo_path)
@@ -75,6 +75,6 @@
 
 <div class="d-flex justify-content-between mt-5">
     <div>Printed: {{ now()->format('d M Y h:i A') }}</div>
-    <div class="signature-line">Authorized Signature</div>
+    <div class="signature-line">Authorized Signature<br><strong>{{ signature_name() }}</strong></div>
 </div>
 @endsection

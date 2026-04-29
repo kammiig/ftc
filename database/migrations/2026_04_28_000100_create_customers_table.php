@@ -10,11 +10,11 @@ return new class extends Migration
     {
         Schema::create('customers', function (Blueprint $table): void {
             $table->id();
-            $table->string('account_number')->unique();
             $table->string('name');
             $table->string('guardian_name')->nullable();
             $table->string('cnic')->nullable()->unique();
             $table->string('phone');
+            $table->string('whatsapp_number')->nullable();
             $table->string('alternate_phone')->nullable();
             $table->text('address')->nullable();
             $table->string('city')->nullable();
@@ -27,7 +27,6 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['name', 'phone']);
-            $table->index('account_number');
         });
     }
 

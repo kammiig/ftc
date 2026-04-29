@@ -21,10 +21,12 @@ Professional Laravel web application for managing installment sales, customers, 
 - Installment sale creation with automatic profit, balance, and schedule generation
 - Payment collection with partial payment support and auto allocation to pending installments
 - Customer ledger with debit, credit, running balance, print/PDF, and CSV export
-- Payment receipt print/PDF page
+- Payment receipt print/PDF page with stored receipt PDFs
+- WhatsApp Cloud API delivery for ledger, receipt, and payment confirmation PDFs, with manual fallback links
 - Pending, overdue, due today, due week, and missed-this-month sections
 - Reports for payments, pending, overdue, sales, investment, profit, active/completed accounts, defaulters, and daily collection
 - Company settings for logo, phone, address, currency, footer text, payment methods, and default due day
+- Company settings for WhatsApp API credentials and default authorized signature name
 - Activity log records for major actions
 - cPanel-friendly source structure and deployment guide
 
@@ -92,6 +94,23 @@ http://127.0.0.1:8000
 - Schedule print/PDF: sale detail page
 - CSV exports: ledger and major reports
 - Browser PDF export is available through the print pages by choosing `Save as PDF`
+- Generated ledger and receipt PDFs are stored privately under `storage/app/generated-pdfs`
+- The default authorized signature is `Malik`; Admin can upload a signature image from `Settings`
+
+## WhatsApp Cloud API
+
+The system can send ledger, receipt, and payment confirmation PDFs through WhatsApp Cloud API. Configure these values in `Settings` or `.env`:
+
+```env
+WHATSAPP_API_TOKEN=
+WHATSAPP_PHONE_NUMBER_ID=
+WHATSAPP_BUSINESS_ACCOUNT_ID=
+WHATSAPP_GRAPH_VERSION=v24.0
+```
+
+Customer WhatsApp number is used first. If it is empty, the customer phone number is used. Pakistan mobile numbers like `03XXXXXXXXX` are normalized to `923XXXXXXXXX`.
+
+If API credentials are missing or an API request fails, the portal creates a WhatsApp log entry and shows a fallback with a temporary signed PDF download link plus a WhatsApp message button for manual sending.
 
 ## Security Notes
 
@@ -132,7 +151,7 @@ The portal includes an Admin-only backup page at `Backups`.
 Backup types:
 
 - Database-only backup
-- Full backup including database, uploaded customer/product/guarantor images, CNIC images, and the FTC logo
+- Full backup including database, uploaded customer/product/guarantor images, CNIC images, FTC logo, signature image, and generated PDFs
 
 Backup ZIP files are stored outside the public web root in:
 
@@ -171,7 +190,7 @@ mysqldump -u DB_USERNAME -p DB_DATABASE > ftc_backup.sql
 Files:
 
 ```bash
-zip -r ftc_uploads_backup.zip storage/app/public
+zip -r ftc_files_backup.zip storage/app/public storage/app/generated-pdfs
 ```
 
 On cPanel, use phpMyAdmin Export for the database and File Manager backup/compress for project files.
@@ -183,13 +202,14 @@ On cPanel, use phpMyAdmin Export for the database and File Manager backup/compre
 3. Upload the project source to the new hosting account.
 4. Create a new MySQL database and database user.
 5. Import the SQL file from the backup ZIP into the new database.
-6. Upload the backed-up `uploads` files into `storage/app/public`.
-7. Confirm `public/assets/images/ftc-logo.png` exists on the new hosting account.
-8. Update `.env` with the new database credentials.
-9. Update `APP_URL` in `.env` with the new domain.
-10. Set permissions for `storage` and `bootstrap/cache`.
-11. Run `php artisan storage:link` or create the storage link manually from cPanel.
-12. Clear Laravel cache:
+6. Upload the backed-up uploaded files into `storage/app/public`.
+7. Upload generated PDFs into `storage/app/generated-pdfs` if you need old PDF receipts and ledgers available.
+8. Confirm `public/assets/images/ftc-logo.png` exists on the new hosting account.
+9. Update `.env` with the new database credentials.
+10. Update `APP_URL` in `.env` with the new domain.
+11. Set permissions for `storage` and `bootstrap/cache`.
+12. Run `php artisan storage:link` or create the storage link manually from cPanel.
+13. Clear Laravel cache:
 
 ```bash
 php artisan optimize:clear
@@ -198,13 +218,14 @@ php artisan route:cache
 php artisan view:cache
 ```
 
-13. Test login with the admin account.
-14. Test dashboard totals.
-15. Test a customer profile.
-16. Test customer ledger and ledger print.
-17. Test receipt print.
-18. Test reports.
-19. Test backup creation and download on the new domain.
+14. Test login with the admin account.
+15. Test dashboard totals.
+16. Test a customer profile.
+17. Test customer ledger, ledger print, and ledger PDF.
+18. Test receipt print and receipt PDF.
+19. Test WhatsApp fallback or API sending.
+20. Test reports.
+21. Test backup creation and download on the new domain.
 
 ## cPanel Deployment
 

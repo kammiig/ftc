@@ -6,7 +6,7 @@ This guide deploys FTC Installment Management System on shared cPanel hosting wi
 
 - PHP 8.3+ for Laravel 13
 - MySQL 5.7+ or MariaDB 10.3+
-- PHP extensions commonly required by Laravel: BCMath, Ctype, cURL, DOM, Fileinfo, JSON, Mbstring, OpenSSL, PDO, PDO MySQL, Tokenizer, XML
+- PHP extensions commonly required by Laravel: BCMath, Ctype, cURL, DOM, Fileinfo, GD, JSON, Mbstring, OpenSSL, PDO, PDO MySQL, Tokenizer, XML, Zip
 - Composer access through Terminal/SSH is recommended
 
 ## 2. Upload Source Code
@@ -181,7 +181,26 @@ Then:
 3. Add products and customers.
 4. Start creating installment sales.
 
-## 12. Portal Backup Management
+## 12. WhatsApp and PDF Setup
+
+Ledger and receipt PDFs are generated privately in:
+
+```text
+storage/app/generated-pdfs
+```
+
+To send PDFs automatically through WhatsApp Cloud API, add these values in `Settings` or `.env`:
+
+```env
+WHATSAPP_API_TOKEN=
+WHATSAPP_PHONE_NUMBER_ID=
+WHATSAPP_BUSINESS_ACCOUNT_ID=
+WHATSAPP_GRAPH_VERSION=v24.0
+```
+
+If credentials are not configured, the portal still generates the PDF and shows a fallback with a temporary signed download link plus a WhatsApp message button for manual sending.
+
+## 13. Portal Backup Management
 
 The application includes an Admin-only backup page:
 
@@ -192,7 +211,7 @@ Backups
 Supported backup types:
 
 - Database-only backup
-- Full backup with database and uploaded files
+- Full backup with database, uploaded files, logo/signature images, and generated PDFs
 
 Backup files are stored privately in:
 
@@ -202,7 +221,7 @@ storage/app/backups
 
 They are not accessible by direct browser URL. Admin users must download them through the protected portal route.
 
-## 13. cPanel Cron Job for Automatic Backup
+## 14. cPanel Cron Job for Automatic Backup
 
 In cPanel, open `Cron Jobs` and add one of these commands.
 
@@ -226,7 +245,7 @@ which php
 
 and replace `/usr/local/bin/php`.
 
-## 14. Database Backup
+## 15. Database Backup
 
 Use cPanel `Backup` or `phpMyAdmin > Export`.
 
@@ -236,7 +255,7 @@ Command line:
 mysqldump -u USERNAME_ftcuser -p USERNAME_ftc > ftc_backup.sql
 ```
 
-## 15. File Backup
+## 16. File Backup
 
 Back up:
 
@@ -249,25 +268,27 @@ At minimum, keep:
 ```text
 .env
 storage/app/public
+storage/app/generated-pdfs
 database backups
 ```
 
-## 16. Moving to Another Domain
+## 17. Moving to Another Domain
 
 1. Create a full backup from the old portal.
 2. Download the backup ZIP.
 3. Upload the project files to the new hosting account.
 4. Create a new MySQL database and user.
 5. Import the SQL file from the backup ZIP.
-6. Upload backed-up files from `uploads` into `storage/app/public`.
-7. Update `.env` database credentials.
-8. Update `APP_URL` to the new domain.
-9. Set permissions for `storage` and `bootstrap/cache`.
-10. Create the storage link.
-11. Clear and rebuild Laravel cache.
-12. Test login, dashboard, customer profile, ledger, receipt print, reports, and backup system.
+6. Upload backed-up files into `storage/app/public`.
+7. Upload generated PDFs into `storage/app/generated-pdfs` if you need old PDF receipts and ledgers.
+8. Update `.env` database credentials.
+9. Update `APP_URL` to the new domain.
+10. Set permissions for `storage` and `bootstrap/cache`.
+11. Create the storage link.
+12. Clear and rebuild Laravel cache.
+13. Test login, dashboard, customer profile, ledger print/PDF, receipt print/PDF, WhatsApp fallback/API sending, reports, and backup system.
 
-## 17. Updates From GitHub
+## 18. Updates From GitHub
 
 ```bash
 cd /home/USERNAME/ftc-app
