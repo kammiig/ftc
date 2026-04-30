@@ -1,24 +1,25 @@
 @extends('layouts.app')
 
 @section('title', 'Dashboard')
-@section('subtitle', 'Business performance and payment alerts')
+@section('subtitle', 'Simple payment overview for daily office work')
 
 @section('content')
 @php
     $cards = [
-        ['label' => 'Customers', 'value' => $metrics['total_customers'], 'icon' => 'users'],
-        ['label' => 'Active Accounts', 'value' => $metrics['active_accounts'], 'icon' => 'activity'],
-        ['label' => 'Completed Accounts', 'value' => $metrics['completed_accounts'], 'icon' => 'check-circle-2'],
-        ['label' => 'Products Sold', 'value' => $metrics['products_sold'], 'icon' => 'package-check'],
-        ['label' => 'Investment', 'value' => money($metrics['total_investment']), 'icon' => 'landmark'],
-        ['label' => 'Sale Value', 'value' => money($metrics['total_sale_value']), 'icon' => 'receipt'],
-        ['label' => 'Expected Profit', 'value' => money($metrics['expected_profit']), 'icon' => 'trending-up'],
-        ['label' => 'Received', 'value' => money($metrics['amount_received']), 'icon' => 'wallet'],
-        ['label' => 'Received This Month', 'value' => money($metrics['amount_received_month']), 'icon' => 'calendar-check'],
-        ['label' => 'Pending', 'value' => money($metrics['pending_amount']), 'icon' => 'hourglass'],
-        ['label' => 'Overdue', 'value' => money($metrics['overdue_amount']), 'icon' => 'triangle-alert'],
-        ['label' => 'Missed This Month', 'value' => $metrics['missed_this_month'], 'icon' => 'calendar-x'],
+        ['label' => 'Total Customers', 'value' => $metrics['total_customers'], 'icon' => 'users'],
+        ['label' => 'Active Installment Accounts', 'value' => $metrics['active_accounts'], 'icon' => 'activity'],
+        ['label' => 'Payments Received This Month', 'value' => money($metrics['amount_received_month']), 'icon' => 'calendar-check'],
+        ['label' => 'Pending Amount', 'value' => money($metrics['pending_amount']), 'icon' => 'hourglass'],
+        ['label' => 'Overdue Amount', 'value' => money($metrics['overdue_amount']), 'icon' => 'triangle-alert'],
+        ['label' => 'Due Today', 'value' => $metrics['due_today'], 'icon' => 'calendar-clock'],
+        ['label' => 'Due This Week', 'value' => $metrics['due_this_week'], 'icon' => 'calendar-days'],
+        ['label' => 'Recent Payments', 'value' => $recentPayments->count(), 'icon' => 'wallet'],
     ];
+
+    if (can_view_financials()) {
+        $cards[] = ['label' => 'Total Investment', 'value' => money($metrics['total_investment'] ?? 0), 'icon' => 'landmark'];
+        $cards[] = ['label' => 'Total Profit', 'value' => money($metrics['expected_profit'] ?? 0), 'icon' => 'trending-up'];
+    }
 @endphp
 
 <div class="row g-3 mb-4">
@@ -37,46 +38,11 @@
     @endforeach
 </div>
 
-<div class="row g-3 mb-4">
-    <div class="col-lg-8">
-        <div class="card h-100">
-            <div class="card-header bg-white d-flex align-items-center justify-content-between">
-                <strong>Monthly Collection</strong>
-                @if(auth()->user()->isAdmin())
-                    <a href="{{ route('reports.payments') }}" class="btn btn-outline-secondary btn-sm">Report</a>
-                @endif
-            </div>
-            <div class="card-body">
-                <canvas id="collectionChart" height="110"></canvas>
-            </div>
-        </div>
-    </div>
-    <div class="col-lg-4">
-        <div class="card h-100">
-            <div class="card-header bg-white"><strong>Alerts</strong></div>
-            <div class="list-group list-group-flush">
-                <a class="list-group-item d-flex justify-content-between" href="{{ route('pending.index', ['due_today' => 1]) }}">
-                    Due today <span class="badge text-bg-primary">{{ $metrics['due_today'] }}</span>
-                </a>
-                <a class="list-group-item d-flex justify-content-between" href="{{ route('pending.index', ['due_week' => 1]) }}">
-                    Due this week <span class="badge text-bg-info">{{ $metrics['due_this_week'] }}</span>
-                </a>
-                <a class="list-group-item d-flex justify-content-between" href="{{ route('pending.index', ['overdue_only' => 1]) }}">
-                    Overdue installments <span class="badge text-bg-danger">{{ $metrics['overdue_installments'] }}</span>
-                </a>
-                <a class="list-group-item d-flex justify-content-between" href="{{ route('products.index', ['status' => 'available']) }}">
-                    Low stock products <span class="badge text-bg-warning">{{ $metrics['low_stock'] }}</span>
-                </a>
-            </div>
-        </div>
-    </div>
-</div>
-
 <div class="row g-3">
     <div class="col-xl-6">
         <div class="card h-100">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <strong>Installments Due Today</strong>
+                <strong>Due Today</strong>
                 <a href="{{ route('pending.index', ['due_today' => 1]) }}" class="btn btn-sm btn-outline-secondary">View</a>
             </div>
             <div class="table-responsive">
@@ -101,7 +67,7 @@
     <div class="col-xl-6">
         <div class="card h-100">
             <div class="card-header bg-white d-flex justify-content-between align-items-center">
-                <strong>Overdue Installments</strong>
+                <strong>Overdue Payments</strong>
                 <a href="{{ route('pending.index', ['overdue_only' => 1]) }}" class="btn btn-sm btn-outline-secondary">View</a>
             </div>
             <div class="table-responsive">
@@ -116,14 +82,14 @@
                             <td class="text-end"><a class="btn btn-sm btn-success" href="{{ route('payments.create', ['sale_id' => $schedule->installment_sale_id, 'schedule_id' => $schedule->id]) }}">Collect</a></td>
                         </tr>
                     @empty
-                        <tr><td colspan="4" class="text-center text-muted py-4">No overdue installments.</td></tr>
+                        <tr><td colspan="4" class="text-center text-muted py-4">No overdue payments.</td></tr>
                     @endforelse
                     </tbody>
                 </table>
             </div>
         </div>
     </div>
-    <div class="col-xl-6">
+    <div class="col-12">
         <div class="card">
             <div class="card-header bg-white"><strong>Recent Payments</strong></div>
             <div class="table-responsive">
@@ -145,51 +111,5 @@
             </div>
         </div>
     </div>
-    <div class="col-xl-6">
-        <div class="card">
-            <div class="card-header bg-white"><strong>Recent Installment Sales</strong></div>
-            <div class="table-responsive">
-                <table class="table mb-0">
-                    <thead><tr><th>Account</th><th>Customer</th><th>Product</th><th>Status</th></tr></thead>
-                    <tbody>
-                    @forelse($recentSales as $sale)
-                        <tr>
-                            <td><a href="{{ route('sales.show', $sale) }}">{{ $sale->account_number }}</a></td>
-                            <td>{{ $sale->customer?->name }}</td>
-                            <td>{{ $sale->product_name }}</td>
-                            <td>@include('partials.status', ['status' => $sale->status])</td>
-                        </tr>
-                    @empty
-                        <tr><td colspan="4" class="text-center text-muted py-4">No sales created.</td></tr>
-                    @endforelse
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 </div>
 @endsection
-
-@push('scripts')
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script>
-    const chart = @json($collectionsChart);
-    new Chart(document.getElementById('collectionChart'), {
-        type: 'bar',
-        data: {
-            labels: chart.labels,
-            datasets: [{
-                label: 'Received',
-                data: chart.data,
-                backgroundColor: '#082c9d',
-                borderRadius: 6
-            }]
-        },
-        options: {
-            responsive: true,
-            plugins: {legend: {display: false}},
-            scales: {y: {beginAtZero: true}}
-        }
-    });
-</script>
-@endpush

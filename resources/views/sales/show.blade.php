@@ -12,19 +12,18 @@
     <div class="d-flex gap-2">
         <a href="{{ route('payments.create', ['sale_id' => $sale->id]) }}" class="btn btn-success"><i data-lucide="wallet"></i> Payment</a>
         <a href="{{ route('sales.schedule.print', $sale) }}" class="btn btn-outline-dark"><i data-lucide="printer"></i> Schedule</a>
-        <form method="POST" action="{{ route('sales.ledger.whatsapp', $sale) }}">
-            @csrf
-            <button class="btn btn-outline-success" type="submit"><i data-lucide="send"></i> Ledger</button>
-        </form>
+        <a href="{{ route('sales.ledger.whatsapp', $sale) }}" class="btn btn-outline-success"><i data-lucide="send"></i> Ledger</a>
         <a href="{{ route('sales.edit', $sale) }}" class="btn btn-outline-primary"><i data-lucide="pencil"></i></a>
     </div>
 </div>
 
 <div class="row g-3 mb-3">
-    <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Sale Value</div><div class="h5 mb-0">{{ money($sale->installment_sale_price) }}</div></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Paid</div><div class="h5 mb-0">{{ money($sale->total_paid) }}</div></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Pending</div><div class="h5 mb-0">{{ money($sale->pending_balance) }}</div></div></div></div>
-    <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Profit</div><div class="h5 mb-0">{{ money($sale->profit_amount) }}</div></div></div></div>
+    <div class="{{ can_view_financials() ? 'col-md-3' : 'col-md-4' }}"><div class="card"><div class="card-body"><div class="text-muted small">Sale Value</div><div class="h5 mb-0">{{ money($sale->installment_sale_price) }}</div></div></div></div>
+    <div class="{{ can_view_financials() ? 'col-md-3' : 'col-md-4' }}"><div class="card"><div class="card-body"><div class="text-muted small">Paid</div><div class="h5 mb-0">{{ money($sale->total_paid) }}</div></div></div></div>
+    <div class="{{ can_view_financials() ? 'col-md-3' : 'col-md-4' }}"><div class="card"><div class="card-body"><div class="text-muted small">Pending</div><div class="h5 mb-0">{{ money($sale->pending_balance) }}</div></div></div></div>
+    @if(can_view_financials())
+        <div class="col-md-3"><div class="card"><div class="card-body"><div class="text-muted small">Profit</div><div class="h5 mb-0">{{ money($sale->profit_amount) }}</div></div></div></div>
+    @endif
 </div>
 
 <div class="row g-3">
@@ -63,7 +62,9 @@
                 <dl class="row mb-0">
                     <dt class="col-6">Customer</dt><dd class="col-6"><a href="{{ route('customers.show', $sale->customer) }}">{{ $sale->customer?->name }}</a></dd>
                     <dt class="col-6">Phone</dt><dd class="col-6">{{ $sale->customer?->phone }}</dd>
-                    <dt class="col-6">Cost</dt><dd class="col-6">{{ money($sale->product_cost_price) }}</dd>
+                    @if(can_view_financials())
+                        <dt class="col-6">Cost</dt><dd class="col-6">{{ money($sale->product_cost_price) }}</dd>
+                    @endif
                     <dt class="col-6">Advance</dt><dd class="col-6">{{ money($sale->advance_payment) }}</dd>
                     <dt class="col-6">Installments</dt><dd class="col-6">{{ $sale->installments_count }} x {{ money($sale->monthly_installment_amount) }}</dd>
                     <dt class="col-6">Due day</dt><dd class="col-6">{{ $sale->monthly_due_day }}</dd>

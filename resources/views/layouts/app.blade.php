@@ -164,8 +164,8 @@
                 <a href="{{ route('sales.index') }}" class="{{ request()->routeIs('sales.*') ? 'active' : '' }}"><i data-lucide="file-plus-2"></i> Installment Sales</a>
                 <a href="{{ route('payments.index') }}" class="{{ request()->routeIs('payments.*') ? 'active' : '' }}"><i data-lucide="wallet-cards"></i> Payments</a>
                 <a href="{{ route('pending.index') }}" class="{{ request()->routeIs('pending.*') ? 'active' : '' }}"><i data-lucide="alarm-clock"></i> Pending & Overdue</a>
+                <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i data-lucide="bar-chart-3"></i> Reports</a>
                 @if(auth()->user()->isAdmin())
-                    <a href="{{ route('reports.index') }}" class="{{ request()->routeIs('reports.*') ? 'active' : '' }}"><i data-lucide="bar-chart-3"></i> Reports</a>
                     <a href="{{ route('settings.edit') }}" class="{{ request()->routeIs('settings.*') ? 'active' : '' }}"><i data-lucide="settings"></i> Settings</a>
                     <a href="{{ route('users.index') }}" class="{{ request()->routeIs('users.*') ? 'active' : '' }}"><i data-lucide="shield-check"></i> Users</a>
                     <a href="{{ route('backups.index') }}" class="{{ request()->routeIs('backups.*') ? 'active' : '' }}"><i data-lucide="database-backup"></i> Backups</a>
@@ -186,8 +186,8 @@
                     <a class="btn btn-outline-secondary text-start" href="{{ route('sales.index') }}"><i data-lucide="file-plus-2"></i> Installment Sales</a>
                     <a class="btn btn-outline-secondary text-start" href="{{ route('payments.index') }}"><i data-lucide="wallet-cards"></i> Payments</a>
                     <a class="btn btn-outline-secondary text-start" href="{{ route('pending.index') }}"><i data-lucide="alarm-clock"></i> Pending & Overdue</a>
+                    <a class="btn btn-outline-secondary text-start" href="{{ route('reports.index') }}"><i data-lucide="bar-chart-3"></i> Reports</a>
                     @if(auth()->user()->isAdmin())
-                        <a class="btn btn-outline-secondary text-start" href="{{ route('reports.index') }}"><i data-lucide="bar-chart-3"></i> Reports</a>
                         <a class="btn btn-outline-secondary text-start" href="{{ route('settings.edit') }}"><i data-lucide="settings"></i> Settings</a>
                         <a class="btn btn-outline-secondary text-start" href="{{ route('users.index') }}"><i data-lucide="shield-check"></i> Users</a>
                         <a class="btn btn-outline-secondary text-start" href="{{ route('backups.index') }}"><i data-lucide="database-backup"></i> Backups</a>

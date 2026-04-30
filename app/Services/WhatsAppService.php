@@ -9,10 +9,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\WhatsAppMessageLog;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\URL;
-use Illuminate\Support\Str;
-use RuntimeException;
 
 class WhatsAppService
 {
@@ -20,46 +17,83 @@ class WhatsAppService
     {
     }
 
-    public function sendLedger(Customer $customer, ?User $user = null, ?InstallmentSale $sale = null, array $filters = []): array
+    public function ledgerFallback(Customer $customer, ?User $user = null, ?InstallmentSale $sale = null, array $filters = []): array
     {
         $pdfPath = $this->pdfService->storeLedger($customer, $sale, $filters);
+        $accountText = $sale ? "\nAccount No: {$sale->account_number}\nProduct: {$sale->product_name}" : '';
 
-        return $this->sendDocument(
+        $message = "Assalam o Alaikum {$customer->name},\n\n"
+            ."Your FTC customer ledger is ready.{$accountText}\n\n"
+            ."Please find your ledger attached.\n\n"
+            ."Thank you,\n"
+            .company_setting('company_name', 'FTC');
+
+        return $this->buildFallback(
             customer: $customer,
             pdfPath: $pdfPath,
             messageType: 'ledger',
-            caption: 'FTC customer ledger for '.$customer->name,
-            filename: 'FTC-Ledger-'.$customer->id.'.pdf',
+            message: $message,
             user: $user,
             sale: $sale
         );
     }
 
-    public function sendReceipt(Payment $payment, ?User $user = null, string $messageType = 'receipt'): array
+    public function receiptFallback(Payment $payment, ?User $user = null): array
     {
-        $payment->loadMissing(['customer', 'sale']);
-        $pdfPath = $payment->receipt_pdf_path;
+        $payment->loadMissing(['customer', 'sale', 'user']);
+        $pdfPath = $this->receiptPdfPath($payment);
+        $paymentDate = $payment->payment_date?->format('d M Y') ?: '-';
 
-        if (! $pdfPath || ! is_file($this->pdfService->absolutePath($pdfPath))) {
-            $pdfPath = $this->pdfService->storeReceipt($payment);
-            $payment->forceFill(['receipt_pdf_path' => $pdfPath])->save();
-        }
+        $message = "Assalam o Alaikum {$payment->customer?->name},\n\n"
+            ."Your payment has been received by ".company_setting('company_name', 'FTC').".\n\n"
+            ."Receipt No: {$payment->receipt_number}\n"
+            .'Amount Paid: '.money($payment->amount)."\n"
+            .'Payment Date: '.$paymentDate."\n"
+            .'Remaining Balance: '.money($payment->sale?->pending_balance)."\n\n"
+            ."Please find your receipt attached.\n\n"
+            ."Thank you,\n"
+            .company_setting('company_name', 'FTC');
 
-        return $this->sendDocument(
+        return $this->buildFallback(
             customer: $payment->customer,
             pdfPath: $pdfPath,
-            messageType: $messageType,
-            caption: 'FTC payment receipt '.$payment->receipt_number.' for '.money($payment->amount),
-            filename: 'FTC-Receipt-'.$payment->receipt_number.'.pdf',
+            messageType: 'receipt',
+            message: $message,
             user: $user,
             payment: $payment,
             sale: $payment->sale
         );
     }
 
-    public function sendPaymentConfirmation(Payment $payment, ?User $user = null): array
+    public function paymentConfirmationFallback(Payment $payment, ?User $user = null): array
     {
-        return $this->sendReceipt($payment, $user, 'payment_confirmation');
+        $payment->loadMissing(['customer', 'sale', 'user']);
+        $pdfPath = null;
+        try {
+            $pdfPath = $this->receiptPdfPath($payment);
+        } catch (\Throwable $exception) {
+            report($exception);
+        }
+        $paymentDate = $payment->payment_date?->format('d M Y') ?: '-';
+
+        $message = company_setting('company_name', 'FTC')." Payment Confirmation\n\n"
+            ."Customer: {$payment->customer?->name}\n"
+            .'Payment Amount: '.money($payment->amount)."\n"
+            .'Payment Date: '.$paymentDate."\n"
+            ."Receipt No: {$payment->receipt_number}\n"
+            .'Remaining Balance: '.money($payment->sale?->pending_balance)."\n\n"
+            ."Thank you,\n"
+            .company_setting('company_name', 'FTC');
+
+        return $this->buildFallback(
+            customer: $payment->customer,
+            pdfPath: $pdfPath,
+            messageType: 'payment_confirmation',
+            message: $message,
+            user: $user,
+            payment: $payment,
+            sale: $payment->sale
+        );
     }
 
     public function formatNumber(?string $number): ?string
@@ -83,22 +117,24 @@ class WhatsAppService
         return strlen($digits) >= 11 && strlen($digits) <= 15 ? $digits : null;
     }
 
-    public function isConfigured(): bool
-    {
-        return filled($this->token()) && filled($this->phoneNumberId());
-    }
-
-    private function sendDocument(
-        Customer $customer,
-        string $pdfPath,
+    private function buildFallback(
+        ?Customer $customer,
+        ?string $pdfPath,
         string $messageType,
-        string $caption,
-        string $filename,
+        string $message,
         ?User $user = null,
         ?Payment $payment = null,
         ?InstallmentSale $sale = null
     ): array {
+        if (! $customer) {
+            return [
+                'status' => 'error',
+                'message' => 'Customer record is missing.',
+            ];
+        }
+
         $number = $this->formatNumber($customer->whatsapp_number ?: $customer->phone);
+
         $log = WhatsAppMessageLog::query()->create([
             'customer_id' => $customer->id,
             'payment_id' => $payment?->id,
@@ -106,113 +142,55 @@ class WhatsAppService
             'whatsapp_number' => $number ?: (string) ($customer->whatsapp_number ?: $customer->phone),
             'message_type' => $messageType,
             'pdf_file_path' => $pdfPath,
-            'status' => 'pending',
+            'status' => $number ? 'pending' : 'failed',
+            'error_message' => $number ? null : 'Customer WhatsApp/phone number is missing.',
             'sent_by' => $user?->id,
         ]);
 
         if (! $number) {
-            return $this->fallback($log, 'Customer WhatsApp number is invalid.', 'failed');
-        }
-
-        if (! $this->isConfigured()) {
-            return $this->fallback($log, 'WhatsApp Cloud API credentials are not configured.', 'pending');
-        }
-
-        try {
-            $absolutePath = $this->pdfService->absolutePath($pdfPath);
-
-            if (! File::exists($absolutePath)) {
-                throw new RuntimeException('Generated PDF file was not found.');
-            }
-
-            $mediaResponse = Http::withToken($this->token())
-                ->attach('file', File::get($absolutePath), basename($filename))
-                ->post($this->graphUrl($this->phoneNumberId().'/media'), [
-                    'messaging_product' => 'whatsapp',
-                    'type' => 'application/pdf',
-                ]);
-
-            if (! $mediaResponse->successful()) {
-                throw new RuntimeException('WhatsApp media upload failed: '.$mediaResponse->body());
-            }
-
-            $mediaId = $mediaResponse->json('id');
-
-            $messageResponse = Http::withToken($this->token())
-                ->post($this->graphUrl($this->phoneNumberId().'/messages'), [
-                    'messaging_product' => 'whatsapp',
-                    'recipient_type' => 'individual',
-                    'to' => $number,
-                    'type' => 'document',
-                    'document' => [
-                        'id' => $mediaId,
-                        'caption' => $caption,
-                        'filename' => $filename,
-                    ],
-                ]);
-
-            if (! $messageResponse->successful()) {
-                throw new RuntimeException('WhatsApp document send failed: '.$messageResponse->body());
-            }
-
-            $log->forceFill([
-                'status' => 'sent',
-                'api_response' => $messageResponse->body(),
-                'sent_at' => now(),
-            ])->save();
-
-            ActivityLog::record('whatsapp_sent', 'WhatsApp '.$messageType.' sent to '.$number, $log);
+            ActivityLog::record('whatsapp_failed', 'Customer WhatsApp/phone number is missing.', $log);
 
             return [
-                'status' => 'sent',
-                'message' => ucfirst(str_replace('_', ' ', $messageType)).' sent to WhatsApp.',
-                'log' => $log->refresh(),
+                'status' => 'error',
+                'message' => 'Customer WhatsApp/phone number is missing.',
+                'log' => $log,
             ];
-        } catch (\Throwable $exception) {
-            return $this->fallback($log, $exception->getMessage(), 'failed');
         }
-    }
 
-    private function fallback(WhatsAppMessageLog $log, string $reason, string $status): array
-    {
-        $log->forceFill([
-            'status' => $status,
-            'error_message' => $reason,
-        ])->save();
-
-        ActivityLog::record('whatsapp_failed', 'WhatsApp send fallback: '.$reason, $log);
-
-        $downloadUrl = URL::temporarySignedRoute(
+        $downloadUrl = $pdfPath ? URL::temporarySignedRoute(
             'whatsapp.files.download',
             now()->addDays(2),
             ['log' => $log->id]
-        );
+        ) : null;
 
-        $message = 'FTC document is ready. Please download and attach the PDF manually: '.$downloadUrl;
+        $whatsAppUrl = 'https://wa.me/'.$number.'?text='.rawurlencode($message);
+
+        ActivityLog::record('whatsapp_fallback_ready', 'WhatsApp Web fallback prepared for '.$number, $log);
 
         return [
             'status' => 'fallback',
-            'message' => $reason,
+            'message' => $pdfPath
+                ? 'WhatsApp message is ready. Please attach the downloaded PDF manually.'
+                : 'WhatsApp message is ready.',
             'download_url' => $downloadUrl,
-            'whatsapp_url' => 'https://wa.me/'.$log->whatsapp_number.'?text='.rawurlencode($message),
+            'whatsapp_url' => $whatsAppUrl,
+            'whatsapp_number' => $number,
+            'prepared_message' => $message,
+            'pdf_filename' => $pdfPath ? basename($pdfPath) : null,
+            'pdf_exists' => $pdfPath ? File::exists($this->pdfService->absolutePath($pdfPath)) : false,
             'log' => $log->refresh(),
         ];
     }
 
-    private function token(): ?string
+    private function receiptPdfPath(Payment $payment): string
     {
-        return company_setting('whatsapp_api_token') ?: env('WHATSAPP_API_TOKEN');
-    }
+        $path = $payment->receipt_pdf_path;
 
-    private function phoneNumberId(): ?string
-    {
-        return company_setting('whatsapp_phone_number_id') ?: env('WHATSAPP_PHONE_NUMBER_ID');
-    }
+        if (! $path || ! File::exists($this->pdfService->absolutePath($path))) {
+            $path = $this->pdfService->storeReceipt($payment);
+            $payment->forceFill(['receipt_pdf_path' => $path])->save();
+        }
 
-    private function graphUrl(string $path): string
-    {
-        $version = company_setting('whatsapp_graph_version') ?: env('WHATSAPP_GRAPH_VERSION', 'v24.0');
-
-        return 'https://graph.facebook.com/'.$version.'/'.trim($path, '/');
+        return $path;
     }
 }

@@ -12,69 +12,68 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Http\Response;
+use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class WhatsAppController extends Controller
 {
-    public function sendCustomerLedger(Request $request, Customer $customer, WhatsAppService $whatsApp): RedirectResponse
+    public function customerLedger(Request $request, Customer $customer, WhatsAppService $whatsApp): View|RedirectResponse
     {
         $filters = $request->validate([
             'from' => ['nullable', 'date'],
             'to' => ['nullable', 'date'],
         ]);
 
-        $this->flashResult($whatsApp->sendLedger($customer, Auth::user(), null, $filters));
-
-        return back();
+        return $this->fallbackView(fn () => $whatsApp->ledgerFallback($customer, Auth::user(), null, $filters), 'Customer Ledger WhatsApp');
     }
 
-    public function sendSaleLedger(InstallmentSale $sale, WhatsAppService $whatsApp): RedirectResponse
+    public function saleLedger(InstallmentSale $sale, WhatsAppService $whatsApp): View|RedirectResponse
     {
         $sale->loadMissing('customer');
-        $this->flashResult($whatsApp->sendLedger($sale->customer, Auth::user(), $sale));
 
-        return back();
+        return $this->fallbackView(fn () => $whatsApp->ledgerFallback($sale->customer, Auth::user(), $sale), 'Installment Ledger WhatsApp');
     }
 
-    public function sendReceipt(Payment $payment, WhatsAppService $whatsApp): RedirectResponse
+    public function receipt(Payment $payment, WhatsAppService $whatsApp): View|RedirectResponse
     {
-        $this->flashResult($whatsApp->sendReceipt($payment, Auth::user()));
-
-        return back();
+        return $this->fallbackView(fn () => $whatsApp->receiptFallback($payment, Auth::user()), 'Send Receipt to WhatsApp');
     }
 
-    public function sendPaymentConfirmation(Payment $payment, WhatsAppService $whatsApp): RedirectResponse
+    public function paymentConfirmation(Payment $payment, WhatsAppService $whatsApp): View|RedirectResponse
     {
-        $this->flashResult($whatsApp->sendPaymentConfirmation($payment, Auth::user()));
-
-        return back();
+        return $this->fallbackView(fn () => $whatsApp->paymentConfirmationFallback($payment, Auth::user()), 'Payment Confirmation WhatsApp');
     }
 
-    public function download(WhatsAppMessageLog $log, PdfService $pdfService): BinaryFileResponse
+    public function download(WhatsAppMessageLog $log, PdfService $pdfService): BinaryFileResponse|Response
     {
         abort_unless(request()->hasValidSignature(), 403);
 
         $path = $log->pdf_file_path ? $pdfService->absolutePath($log->pdf_file_path) : null;
-        abort_unless($path && File::exists($path), 404);
+        if (! $path || ! File::exists($path)) {
+            return response('PDF file is missing. Please generate the document again from the portal.', 404);
+        }
 
         return response()->download($path);
     }
 
-    private function flashResult(array $result): void
+    private function fallbackView(callable $callback, string $title): View|RedirectResponse
     {
-        if (($result['status'] ?? null) === 'sent') {
-            session()->flash('whatsapp_status', [
-                'type' => 'success',
-                'message' => $result['message'] ?? 'WhatsApp message sent.',
-            ]);
+        try {
+            $result = $callback();
+        } catch (\Throwable $exception) {
+            report($exception);
 
-            return;
+            return back()->with('error', 'Unable to generate PDF. Please check PDF package installation.');
         }
 
-        session()->flash('whatsapp_fallback', [
-            'message' => $result['message'] ?? 'WhatsApp API is unavailable.',
-            'download_url' => $result['download_url'] ?? null,
-            'whatsapp_url' => $result['whatsapp_url'] ?? null,
-        ]);
+        if (($result['status'] ?? null) === 'error') {
+            return back()->with('error', $result['message'] ?? 'Unable to prepare WhatsApp message.');
+        }
+
+        return view('whatsapp.fallback', [
+            'title' => $title,
+            'result' => $result,
+        ])->with('success', 'WhatsApp message is ready. Please attach the downloaded PDF manually.');
     }
 }

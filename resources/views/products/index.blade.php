@@ -21,7 +21,7 @@
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
-            <thead><tr><th>Product</th><th>SKU</th><th>Cost</th><th>Cash</th><th>Installment</th><th>Stock</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Product</th><th>SKU</th>@if(can_view_financials())<th>Cost</th>@endif<th>Cash</th><th>Installment</th><th>Stock</th><th>Status</th><th></th></tr></thead>
             <tbody>
             @forelse($products as $product)
                 <tr>
@@ -39,7 +39,7 @@
                         </div>
                     </td>
                     <td>{{ $product->sku ?: '-' }}</td>
-                    <td>{{ money($product->cost_price) }}</td>
+                    @if(can_view_financials())<td>{{ money($product->cost_price) }}</td>@endif
                     <td>{{ money($product->cash_sale_price) }}</td>
                     <td>{{ money($product->installment_sale_price) }}</td>
                     <td>{{ $product->stock_quantity }}</td>
@@ -49,7 +49,7 @@
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="8" class="text-center text-muted py-5">No products found.</td></tr>
+                <tr><td colspan="{{ can_view_financials() ? 8 : 7 }}" class="text-center text-muted py-5">No products found.</td></tr>
             @endforelse
             </tbody>
         </table>

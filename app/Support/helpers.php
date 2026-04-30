@@ -71,6 +71,15 @@ if (! function_exists('signature_image_data_uri')) {
     }
 }
 
+if (! function_exists('can_view_financials')) {
+    function can_view_financials(mixed $user = null): bool
+    {
+        $user ??= auth()->user();
+
+        return (bool) ($user?->isAdmin());
+    }
+}
+
 if (! function_exists('money')) {
     function money(float|int|string|null $amount): string
     {

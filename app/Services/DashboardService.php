@@ -6,38 +6,37 @@ use App\Models\Customer;
 use App\Models\InstallmentSale;
 use App\Models\InstallmentSchedule;
 use App\Models\Payment;
-use App\Models\Product;
-use Carbon\Carbon;
 
 class DashboardService
 {
-    public function metrics(): array
+    public function metrics(bool $includeFinancials = false): array
     {
         $today = now()->toDateString();
         $weekEnd = now()->copy()->endOfWeek()->toDateString();
 
         $openSchedules = InstallmentSchedule::query()->whereIn('status', ['pending', 'partial', 'overdue']);
 
-        return [
+        $metrics = [
             'total_customers' => Customer::query()->count(),
             'active_accounts' => InstallmentSale::query()->whereIn('status', ['active', 'defaulter'])->count(),
             'completed_accounts' => InstallmentSale::query()->where('status', 'completed')->count(),
-            'products_sold' => InstallmentSale::query()->count(),
-            'total_investment' => InstallmentSale::query()->sum('product_cost_price'),
-            'total_sale_value' => InstallmentSale::query()->sum('installment_sale_price'),
-            'expected_profit' => InstallmentSale::query()->sum('profit_amount'),
             'amount_received' => Payment::query()->sum('amount'),
             'amount_received_month' => Payment::query()
                 ->whereBetween('payment_date', [now()->startOfMonth()->toDateString(), now()->endOfMonth()->toDateString()])
                 ->sum('amount'),
             'pending_amount' => InstallmentSale::query()->whereIn('status', ['active', 'defaulter'])->sum('pending_balance'),
             'overdue_amount' => (clone $openSchedules)->whereDate('due_date', '<', $today)->sum('remaining_amount'),
-            'missed_this_month' => $this->missedThisMonthCount(),
             'due_today' => InstallmentSchedule::query()->open()->whereDate('due_date', $today)->count(),
             'due_this_week' => InstallmentSchedule::query()->open()->whereBetween('due_date', [$today, $weekEnd])->count(),
             'overdue_installments' => InstallmentSchedule::query()->overdue()->count(),
-            'low_stock' => Product::query()->where('stock_quantity', '<=', 3)->where('status', 'available')->count(),
         ];
+
+        if ($includeFinancials) {
+            $metrics['total_investment'] = InstallmentSale::query()->sum('product_cost_price');
+            $metrics['expected_profit'] = InstallmentSale::query()->sum('profit_amount');
+        }
+
+        return $metrics;
     }
 
     public function recentPayments()

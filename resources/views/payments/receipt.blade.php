@@ -15,14 +15,8 @@
     <div class="d-flex flex-wrap gap-2">
         <a href="{{ route('payments.print', $payment) }}" class="btn btn-outline-dark"><i data-lucide="printer"></i> Print</a>
         <a href="{{ route('payments.pdf', $payment) }}" class="btn btn-outline-primary"><i data-lucide="file-down"></i> PDF</a>
-        <form method="POST" action="{{ route('payments.whatsapp', $payment) }}">
-            @csrf
-            <button class="btn btn-success" type="submit"><i data-lucide="send"></i> Send Receipt</button>
-        </form>
-        <form method="POST" action="{{ route('payments.confirmation.whatsapp', $payment) }}">
-            @csrf
-            <button class="btn btn-outline-success" type="submit"><i data-lucide="message-circle"></i> Payment Confirmation</button>
-        </form>
+        <a href="{{ route('payments.whatsapp', $payment) }}" class="btn btn-success"><i data-lucide="send"></i> Send Receipt</a>
+        <a href="{{ route('payments.confirmation.whatsapp', $payment) }}" class="btn btn-outline-success"><i data-lucide="message-circle"></i> Payment Confirmation</a>
     </div>
 </div>
 

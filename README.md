@@ -15,18 +15,18 @@ Professional Laravel web application for managing installment sales, customers, 
 
 - Secure admin/staff login with hashed passwords
 - Role access: Admin and Staff
-- Dashboard with collection, investment, profit, pending, overdue, and alert metrics
+- Simplified dashboard with customer, account, collection, pending, overdue, and due-date metrics
 - Customer CRUD with guarantor details and document/image uploads
 - Product CRUD with SKU, stock, cost price, cash price, installment price, and image upload
 - Installment sale creation with automatic profit, balance, and schedule generation
 - Payment collection with partial payment support and auto allocation to pending installments
 - Customer ledger with debit, credit, running balance, print/PDF, and CSV export
 - Payment receipt print/PDF page with stored receipt PDFs
-- WhatsApp Cloud API delivery for ledger, receipt, and payment confirmation PDFs, with manual fallback links
-- Pending, overdue, due today, due week, and missed-this-month sections
-- Reports for payments, pending, overdue, sales, investment, profit, active/completed accounts, defaulters, and daily collection
+- WhatsApp Web fallback for ledger, receipt, and payment confirmation messages without API tokens
+- Pending, overdue, due today, and due week sections
+- Simplified reports for daily/monthly collection, pending, overdue, customer ledgers, active accounts, completed accounts, plus admin-only investment/profit
 - Company settings for logo, phone, address, currency, footer text, payment methods, and default due day
-- Company settings for WhatsApp API credentials and default authorized signature name
+- Admin-only finance visibility for product cost, investment, and profit
 - Activity log records for major actions
 - cPanel-friendly source structure and deployment guide
 
@@ -46,6 +46,8 @@ cp .env.example .env
 composer install
 php artisan key:generate
 ```
+
+PDF downloads use `barryvdh/laravel-dompdf`, which is installed through Composer.
 
 Create a MySQL database and update `.env`:
 
@@ -95,22 +97,18 @@ http://127.0.0.1:8000
 - CSV exports: ledger and major reports
 - Browser PDF export is available through the print pages by choosing `Save as PDF`
 - Generated ledger and receipt PDFs are stored privately under `storage/app/generated-pdfs`
-- The default authorized signature is `Malik`; Admin can upload a signature image from `Settings`
+- Receipt print/PDF includes a light FTC logo watermark and shows only `Authorized Signature`
 
-## WhatsApp Cloud API
+## WhatsApp Web Fallback
 
-The system can send ledger, receipt, and payment confirmation PDFs through WhatsApp Cloud API. Configure these values in `Settings` or `.env`:
+The system does not require any WhatsApp API credentials. Send Receipt, Payment Confirmation, and Ledger WhatsApp buttons generate a PDF and open a fallback page with:
 
-```env
-WHATSAPP_API_TOKEN=
-WHATSAPP_PHONE_NUMBER_ID=
-WHATSAPP_BUSINESS_ACCOUNT_ID=
-WHATSAPP_GRAPH_VERSION=v24.0
-```
+- Download PDF button
+- Open WhatsApp button
+- Prepared message text
+- Instruction to attach the downloaded PDF manually
 
 Customer WhatsApp number is used first. If it is empty, the customer phone number is used. Pakistan mobile numbers like `03XXXXXXXXX` are normalized to `923XXXXXXXXX`.
-
-If API credentials are missing or an API request fails, the portal creates a WhatsApp log entry and shows a fallback with a temporary signed PDF download link plus a WhatsApp message button for manual sending.
 
 ## Security Notes
 
@@ -223,7 +221,7 @@ php artisan view:cache
 16. Test a customer profile.
 17. Test customer ledger, ledger print, and ledger PDF.
 18. Test receipt print and receipt PDF.
-19. Test WhatsApp fallback or API sending.
+19. Test WhatsApp Web fallback.
 20. Test reports.
 21. Test backup creation and download on the new domain.
 

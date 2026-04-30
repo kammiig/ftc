@@ -6,7 +6,6 @@ use App\Models\InstallmentSale;
 use App\Models\Payment;
 use App\Services\PdfService;
 use App\Services\InstallmentService;
-use App\Services\WhatsAppService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
@@ -53,7 +52,7 @@ class PaymentController extends Controller
         ]);
     }
 
-    public function store(Request $request, InstallmentService $installments, WhatsAppService $whatsApp, PdfService $pdfService): RedirectResponse
+    public function store(Request $request, InstallmentService $installments, PdfService $pdfService): RedirectResponse
     {
         $data = $request->validate([
             'installment_sale_id' => ['required', 'exists:installment_sales,id'],
@@ -70,18 +69,25 @@ class PaymentController extends Controller
 
         $payment = $installments->recordPayment($data, Auth::user());
 
+        $receiptPdfGenerated = false;
+
         try {
             $payment->forceFill(['receipt_pdf_path' => $pdfService->storeReceipt($payment)])->save();
+            $receiptPdfGenerated = true;
         } catch (\Throwable $exception) {
             report($exception);
         }
 
         if ($request->boolean('send_receipt_whatsapp')) {
-            $this->flashWhatsAppResult($whatsApp->sendReceipt($payment, Auth::user()));
+            return redirect()
+                ->route('payments.whatsapp', $payment)
+                ->with('success', $receiptPdfGenerated ? 'Payment recorded and receipt PDF generated.' : 'Payment recorded.');
         }
 
         if ($request->boolean('send_ledger_whatsapp')) {
-            $this->flashWhatsAppResult($whatsApp->sendLedger($payment->customer, Auth::user(), $payment->sale));
+            return redirect()
+                ->route('customers.ledger.whatsapp', $payment->customer)
+                ->with('success', 'Payment recorded.');
         }
 
         return redirect()->route('payments.receipt', $payment)->with('success', 'Payment recorded and ledger updated.');
@@ -106,33 +112,21 @@ class PaymentController extends Controller
         return view('payments.print', compact('payment'));
     }
 
-    public function pdf(Payment $payment, PdfService $pdfService): BinaryFileResponse
+    public function pdf(Payment $payment, PdfService $pdfService): BinaryFileResponse|RedirectResponse
     {
-        $path = $payment->receipt_pdf_path;
+        try {
+            $path = $payment->receipt_pdf_path;
 
-        if (! $path || ! file_exists($pdfService->absolutePath($path))) {
-            $path = $pdfService->storeReceipt($payment);
-            $payment->forceFill(['receipt_pdf_path' => $path])->save();
+            if (! $path || ! file_exists($pdfService->absolutePath($path))) {
+                $path = $pdfService->storeReceipt($payment);
+                $payment->forceFill(['receipt_pdf_path' => $path])->save();
+            }
+
+            return response()->download($pdfService->absolutePath($path), $pdfService->receiptFilename($payment));
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return back()->with('error', 'Unable to generate PDF. Please check PDF package installation.');
         }
-
-        return response()->download($pdfService->absolutePath($path), 'FTC-Receipt-'.$payment->receipt_number.'.pdf');
-    }
-
-    private function flashWhatsAppResult(array $result): void
-    {
-        if (($result['status'] ?? null) === 'sent') {
-            session()->flash('whatsapp_status', [
-                'type' => 'success',
-                'message' => $result['message'] ?? 'WhatsApp message sent.',
-            ]);
-
-            return;
-        }
-
-        session()->flash('whatsapp_fallback', [
-            'message' => $result['message'] ?? 'WhatsApp API is unavailable.',
-            'download_url' => $result['download_url'] ?? null,
-            'whatsapp_url' => $result['whatsapp_url'] ?? null,
-        ]);
     }
 }

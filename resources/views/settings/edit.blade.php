@@ -57,25 +57,6 @@
                             <label class="form-label">Signature image</label>
                             <input class="form-control" type="file" name="signature_image" accept="image/*">
                         </div>
-                        <div class="col-12">
-                            <div class="form-section-title mt-3">WhatsApp Cloud API</div>
-                        </div>
-                        <div class="col-12">
-                            <label class="form-label">WhatsApp API token</label>
-                            <input class="form-control" name="whatsapp_api_token" value="{{ old('whatsapp_api_token', $settings['whatsapp_api_token'] ?? '') }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Phone number ID</label>
-                            <input class="form-control" name="whatsapp_phone_number_id" value="{{ old('whatsapp_phone_number_id', $settings['whatsapp_phone_number_id'] ?? '') }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Business account ID</label>
-                            <input class="form-control" name="whatsapp_business_account_id" value="{{ old('whatsapp_business_account_id', $settings['whatsapp_business_account_id'] ?? '') }}">
-                        </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Graph API version</label>
-                            <input class="form-control" name="whatsapp_graph_version" value="{{ old('whatsapp_graph_version', $settings['whatsapp_graph_version'] ?? 'v24.0') }}">
-                        </div>
                     </div>
                 </div>
             </div>

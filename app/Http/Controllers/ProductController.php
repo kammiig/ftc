@@ -37,6 +37,9 @@ class ProductController extends Controller
     public function store(Request $request): RedirectResponse
     {
         $data = $this->validated($request);
+        if (! can_view_financials()) {
+            $data['cost_price'] = 0;
+        }
         $data['cash_sale_price'] = $data['cash_sale_price'] ?? 0;
         $this->handleUpload($request, $data);
 
@@ -64,6 +67,9 @@ class ProductController extends Controller
     public function update(Request $request, Product $product): RedirectResponse
     {
         $data = $this->validated($request, $product);
+        if (! can_view_financials()) {
+            $data['cost_price'] = $product->cost_price;
+        }
         $data['cash_sale_price'] = $data['cash_sale_price'] ?? 0;
         $this->handleUpload($request, $data, $product);
 
@@ -94,7 +100,7 @@ class ProductController extends Controller
             'category' => ['nullable', 'string', 'max:100'],
             'brand_model' => ['nullable', 'string', 'max:191'],
             'sku' => ['nullable', 'string', 'max:100', 'unique:products,sku,'.$productId],
-            'cost_price' => ['required', 'numeric', 'min:0'],
+            'cost_price' => [can_view_financials() ? 'required' : 'nullable', 'numeric', 'min:0'],
             'cash_sale_price' => ['nullable', 'numeric', 'min:0'],
             'installment_sale_price' => ['required', 'numeric', 'min:0'],
             'stock_quantity' => ['required', 'integer', 'min:0'],

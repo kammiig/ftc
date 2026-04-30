@@ -189,16 +189,9 @@ Ledger and receipt PDFs are generated privately in:
 storage/app/generated-pdfs
 ```
 
-To send PDFs automatically through WhatsApp Cloud API, add these values in `Settings` or `.env`:
+PDF generation uses `barryvdh/laravel-dompdf`, installed by Composer. Make sure `storage` is writable by PHP.
 
-```env
-WHATSAPP_API_TOKEN=
-WHATSAPP_PHONE_NUMBER_ID=
-WHATSAPP_BUSINESS_ACCOUNT_ID=
-WHATSAPP_GRAPH_VERSION=v24.0
-```
-
-If credentials are not configured, the portal still generates the PDF and shows a fallback with a temporary signed download link plus a WhatsApp message button for manual sending.
+WhatsApp does not require an API token. The portal generates the PDF, then shows a WhatsApp Web fallback page with a Download PDF button, Open WhatsApp button, and prepared message. The admin attaches the downloaded PDF manually in WhatsApp.
 
 ## 13. Portal Backup Management
 
@@ -286,7 +279,7 @@ database backups
 10. Set permissions for `storage` and `bootstrap/cache`.
 11. Create the storage link.
 12. Clear and rebuild Laravel cache.
-13. Test login, dashboard, customer profile, ledger print/PDF, receipt print/PDF, WhatsApp fallback/API sending, reports, and backup system.
+13. Test login, dashboard, customer profile, ledger print/PDF, receipt print/PDF, WhatsApp Web fallback, reports, and backup system.
 
 ## 18. Updates From GitHub
 

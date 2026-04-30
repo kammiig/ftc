@@ -13,10 +13,8 @@ class DashboardController extends Controller
         $installments->syncOverdues();
 
         return view('dashboard.index', [
-            'metrics' => $dashboard->metrics(),
+            'metrics' => $dashboard->metrics(can_view_financials()),
             'recentPayments' => $dashboard->recentPayments(),
-            'recentSales' => $dashboard->recentSales(),
-            'collectionsChart' => $dashboard->chartCollections(),
             'dueToday' => $dashboard->dueToday(),
             'overdue' => $dashboard->overdue(),
         ]);

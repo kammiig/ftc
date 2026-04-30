@@ -25,10 +25,12 @@
                         <label class="form-label">SKU / code</label>
                         <input class="form-control" name="sku" value="{{ old('sku', $product->sku) }}">
                     </div>
-                    <div class="col-md-3">
-                        <label class="form-label">Cost price</label>
-                        <input type="number" step="0.01" class="form-control" name="cost_price" value="{{ old('cost_price', $product->cost_price) }}" required>
-                    </div>
+                    @if(can_view_financials())
+                        <div class="col-md-3">
+                            <label class="form-label">Cost price</label>
+                            <input type="number" step="0.01" class="form-control" name="cost_price" value="{{ old('cost_price', $product->cost_price) }}" required>
+                        </div>
+                    @endif
                     <div class="col-md-3">
                         <label class="form-label">Cash sale price</label>
                         <input type="number" step="0.01" class="form-control" name="cash_sale_price" value="{{ old('cash_sale_price', $product->cash_sale_price) }}">

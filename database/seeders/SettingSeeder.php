@@ -22,10 +22,6 @@ class SettingSeeder extends Seeder
             'default_due_day' => '1',
             'signature_name' => 'Malik',
             'signature_image' => '',
-            'whatsapp_api_token' => '',
-            'whatsapp_phone_number_id' => '',
-            'whatsapp_business_account_id' => '',
-            'whatsapp_graph_version' => 'v24.0',
         ];
 
         foreach ($settings as $key => $value) {

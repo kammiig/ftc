@@ -29,9 +29,11 @@
     </div>
     <div class="col-lg-8">
         <div class="row g-3 mb-3">
-            <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted small">Cost</div><div class="h5 mb-0">{{ money($product->cost_price) }}</div></div></div></div>
-            <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted small">Cash Price</div><div class="h5 mb-0">{{ money($product->cash_sale_price) }}</div></div></div></div>
-            <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted small">Installment Price</div><div class="h5 mb-0">{{ money($product->installment_sale_price) }}</div></div></div></div>
+            @if(can_view_financials())
+                <div class="col-md-4"><div class="card"><div class="card-body"><div class="text-muted small">Cost</div><div class="h5 mb-0">{{ money($product->cost_price) }}</div></div></div></div>
+            @endif
+            <div class="{{ can_view_financials() ? 'col-md-4' : 'col-md-6' }}"><div class="card"><div class="card-body"><div class="text-muted small">Cash Price</div><div class="h5 mb-0">{{ money($product->cash_sale_price) }}</div></div></div></div>
+            <div class="{{ can_view_financials() ? 'col-md-4' : 'col-md-6' }}"><div class="card"><div class="card-body"><div class="text-muted small">Installment Price</div><div class="h5 mb-0">{{ money($product->installment_sale_price) }}</div></div></div></div>
         </div>
         <div class="card">
             <div class="card-header bg-white"><strong>Installment Sales</strong></div>

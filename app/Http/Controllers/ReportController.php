@@ -123,8 +123,9 @@ class ReportController extends Controller
         ]);
     }
 
-    public function sales(Request $request, ExportService $export): View|StreamedResponse
+    public function sales(Request $request, ExportService $export, bool $showFinancials = false, string $title = 'Installment Accounts Report'): View|StreamedResponse
     {
+        $showFinancials = $showFinancials && can_view_financials();
         $sales = InstallmentSale::query()
             ->with('customer')
             ->search($request->string('search')->toString())
@@ -134,31 +135,43 @@ class ReportController extends Controller
             ->latest();
 
         if ($request->string('export')->toString() === 'csv') {
-            return $export->csv('installment-sales-report.csv', [
-                'Date', 'Account', 'Customer', 'Product', 'Cost', 'Sale Value', 'Profit', 'Paid', 'Pending', 'Status',
-            ], $sales->get()->map(fn (InstallmentSale $sale) => [
-                $sale->installment_start_date?->format('Y-m-d'),
-                $sale->account_number,
-                $sale->customer?->name,
-                $sale->product_name,
-                $sale->product_cost_price,
-                $sale->installment_sale_price,
-                $sale->profit_amount,
-                $sale->total_paid,
-                $sale->pending_balance,
-                $sale->status,
-            ]));
+            $headings = ['Date', 'Account', 'Customer', 'Product', 'Sale Value', 'Paid', 'Pending', 'Status'];
+            if ($showFinancials) {
+                $headings = ['Date', 'Account', 'Customer', 'Product', 'Cost', 'Sale Value', 'Profit', 'Paid', 'Pending', 'Status'];
+            }
+
+            return $export->csv('installment-accounts-report.csv', $headings, $sales->get()->map(function (InstallmentSale $sale) use ($showFinancials): array {
+                $row = [
+                    $sale->installment_start_date?->format('Y-m-d'),
+                    $sale->account_number,
+                    $sale->customer?->name,
+                    $sale->product_name,
+                    $sale->installment_sale_price,
+                    $sale->total_paid,
+                    $sale->pending_balance,
+                    $sale->status,
+                ];
+
+                if ($showFinancials) {
+                    array_splice($row, 4, 0, [$sale->product_cost_price]);
+                    array_splice($row, 6, 0, [$sale->profit_amount]);
+                }
+
+                return $row;
+            }));
         }
 
-        $investment = (clone $sales)->sum('product_cost_price');
         $saleValue = (clone $sales)->sum('installment_sale_price');
-        $profit = (clone $sales)->sum('profit_amount');
+        $investment = $showFinancials ? (clone $sales)->sum('product_cost_price') : null;
+        $profit = $showFinancials ? (clone $sales)->sum('profit_amount') : null;
 
         return view('reports.sales', [
+            'title' => $title,
             'sales' => $sales->paginate(25)->withQueryString(),
             'investment' => $investment,
             'saleValue' => $saleValue,
             'profit' => $profit,
+            'showFinancials' => $showFinancials,
         ]);
     }
 
@@ -264,21 +277,21 @@ class ReportController extends Controller
 
     public function investment(Request $request, ExportService $export): View|StreamedResponse
     {
-        return $this->sales($request->merge(['status' => $request->string('status')->toString()]), $export);
+        return $this->sales($request->merge(['status' => $request->string('status')->toString()]), $export, true, 'Investment Report');
     }
 
     public function activeAccounts(Request $request, ExportService $export): View|StreamedResponse
     {
         $request->merge(['status' => 'active']);
 
-        return $this->sales($request, $export);
+        return $this->sales($request, $export, false, 'Active Installment Accounts Report');
     }
 
     public function completedAccounts(Request $request, ExportService $export): View|StreamedResponse
     {
         $request->merge(['status' => 'completed']);
 
-        return $this->sales($request, $export);
+        return $this->sales($request, $export, false, 'Completed Installment Accounts Report');
     }
 
     public function defaulters(Request $request, InstallmentService $installments, ExportService $export): View|StreamedResponse

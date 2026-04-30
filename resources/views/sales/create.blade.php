@@ -4,6 +4,7 @@
 @section('subtitle', 'Generate account, ledger debit, advance receipt, and payment schedule')
 
 @section('content')
+@php($canViewFinancials = can_view_financials())
 <form method="POST" action="{{ route('sales.store') }}" id="saleForm">
     @csrf
     <div class="row g-3">
@@ -26,7 +27,7 @@
                             <select class="form-select" name="product_id" id="productSelect" required>
                                 <option value="">Select product</option>
                                 @foreach($products as $product)
-                                    <option value="{{ $product->id }}" data-cost="{{ $product->cost_price }}" data-price="{{ $product->installment_sale_price }}">
+                                    <option value="{{ $product->id }}" @if($canViewFinancials) data-cost="{{ $product->cost_price }}" @endif data-price="{{ $product->installment_sale_price }}">
                                         {{ $product->name }} - {{ $product->sku ?: 'No SKU' }} (Stock: {{ $product->stock_quantity }})
                                     </option>
                                 @endforeach
@@ -40,10 +41,12 @@
                 <div class="card-body">
                     <div class="form-section-title">Installment Plan</div>
                     <div class="row g-3">
-                        <div class="col-md-4">
-                            <label class="form-label">Product cost / investment</label>
-                            <input type="number" step="0.01" class="form-control" name="product_cost_price" id="costPrice" value="{{ old('product_cost_price') }}" required>
-                        </div>
+                        @if($canViewFinancials)
+                            <div class="col-md-4">
+                                <label class="form-label">Product cost / investment</label>
+                                <input type="number" step="0.01" class="form-control" name="product_cost_price" id="costPrice" value="{{ old('product_cost_price') }}" required>
+                            </div>
+                        @endif
                         <div class="col-md-4">
                             <label class="form-label">Installment sale price</label>
                             <input type="number" step="0.01" class="form-control" name="installment_sale_price" id="salePrice" value="{{ old('installment_sale_price') }}" required>
@@ -68,10 +71,12 @@
                             <label class="form-label">Monthly installment</label>
                             <input type="text" class="form-control" id="monthlyAmount" readonly>
                         </div>
-                        <div class="col-md-4">
-                            <label class="form-label">Expected profit</label>
-                            <input type="text" class="form-control" id="profitAmount" readonly>
-                        </div>
+                        @if($canViewFinancials)
+                            <div class="col-md-4">
+                                <label class="form-label">Expected profit</label>
+                                <input type="text" class="form-control" id="profitAmount" readonly>
+                            </div>
+                        @endif
                         <div class="col-md-4">
                             <label class="form-label">Advance method</label>
                             <select class="form-select" name="advance_payment_method">
@@ -109,7 +114,9 @@
                     <div class="d-flex justify-content-between mb-2"><span>Sale value</span><strong id="summarySale">PKR 0.00</strong></div>
                     <div class="d-flex justify-content-between mb-2"><span>Advance</span><strong id="summaryAdvance">PKR 0.00</strong></div>
                     <div class="d-flex justify-content-between mb-2"><span>Remaining</span><strong id="summaryRemaining">PKR 0.00</strong></div>
-                    <div class="d-flex justify-content-between mb-3"><span>Profit</span><strong id="summaryProfit">PKR 0.00</strong></div>
+                    @if($canViewFinancials)
+                        <div class="d-flex justify-content-between mb-3"><span>Profit</span><strong id="summaryProfit">PKR 0.00</strong></div>
+                    @endif
                     <button class="btn btn-primary w-100"><i data-lucide="save"></i> Create Sale</button>
                 </div>
             </div>
@@ -121,6 +128,7 @@
 @push('scripts')
 <script>
     const currency = @json(company_setting('currency_symbol', 'PKR'));
+    const canViewFinancials = @json($canViewFinancials);
     const moneyText = value => `${currency} ${Number(value || 0).toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})}`;
     const productSelect = document.getElementById('productSelect');
     const costPrice = document.getElementById('costPrice');
@@ -130,27 +138,27 @@
 
     function recalc() {
         const sale = Number(salePrice.value || 0);
-        const cost = Number(costPrice.value || 0);
+        const cost = canViewFinancials ? Number(costPrice.value || 0) : 0;
         const advance = Math.min(Number(advancePayment.value || 0), sale);
         const count = Math.max(Number(installmentsCount.value || 1), 1);
         const remaining = Math.max(sale - advance, 0);
         const monthly = remaining / count;
         const profit = sale - cost;
         document.getElementById('monthlyAmount').value = moneyText(monthly);
-        document.getElementById('profitAmount').value = moneyText(profit);
+        if (canViewFinancials) document.getElementById('profitAmount').value = moneyText(profit);
         document.getElementById('summarySale').textContent = moneyText(sale);
         document.getElementById('summaryAdvance').textContent = moneyText(advance);
         document.getElementById('summaryRemaining').textContent = moneyText(remaining);
-        document.getElementById('summaryProfit').textContent = moneyText(profit);
+        if (canViewFinancials) document.getElementById('summaryProfit').textContent = moneyText(profit);
     }
     productSelect.addEventListener('change', () => {
         const selected = productSelect.selectedOptions[0];
         if (!selected) return;
-        costPrice.value = selected.dataset.cost || '';
+        if (canViewFinancials) costPrice.value = selected.dataset.cost || '';
         salePrice.value = selected.dataset.price || '';
         recalc();
     });
-    [costPrice, salePrice, advancePayment, installmentsCount].forEach(input => input.addEventListener('input', recalc));
+    [costPrice, salePrice, advancePayment, installmentsCount].filter(Boolean).forEach(input => input.addEventListener('input', recalc));
     recalc();
 </script>
 @endpush

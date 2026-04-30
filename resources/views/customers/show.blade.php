@@ -20,10 +20,7 @@
         <a href="{{ route('customers.print', $customer) }}" class="btn btn-outline-secondary"><i data-lucide="printer"></i> Profile</a>
         <a href="{{ route('customers.ledger', $customer) }}" class="btn btn-outline-dark"><i data-lucide="book-open"></i> Ledger</a>
         <a href="{{ route('customers.ledger.pdf', $customer) }}" class="btn btn-outline-success"><i data-lucide="download"></i> PDF</a>
-        <form method="POST" action="{{ route('customers.ledger.whatsapp', $customer) }}">
-            @csrf
-            <button class="btn btn-success" type="submit"><i data-lucide="send"></i> WhatsApp</button>
-        </form>
+        <a href="{{ route('customers.ledger.whatsapp', $customer) }}" class="btn btn-success"><i data-lucide="send"></i> WhatsApp</a>
         <a href="{{ route('sales.create', ['customer_id' => $customer->id]) }}" class="btn btn-primary"><i data-lucide="file-plus-2"></i> Sale</a>
         <a href="{{ route('customers.edit', $customer) }}" class="btn btn-outline-primary"><i data-lucide="pencil"></i></a>
     </div>

@@ -36,39 +36,35 @@ Route::middleware('auth')->group(function (): void {
     Route::get('customers/{customer}/ledger/print', [LedgerController::class, 'print'])->name('customers.ledger.print');
     Route::get('customers/{customer}/ledger/pdf', [LedgerController::class, 'pdf'])->name('customers.ledger.pdf');
     Route::get('customers/{customer}/ledger/export', [LedgerController::class, 'export'])->name('customers.ledger.export');
-    Route::post('customers/{customer}/ledger/whatsapp', [WhatsAppController::class, 'sendCustomerLedger'])->name('customers.ledger.whatsapp');
+    Route::get('customers/{customer}/ledger/whatsapp', [WhatsAppController::class, 'customerLedger'])->name('customers.ledger.whatsapp');
 
     Route::resource('products', ProductController::class);
 
     Route::resource('sales', InstallmentSaleController::class)->except(['destroy']);
     Route::get('sales/{sale}/schedule/print', [InstallmentSaleController::class, 'printSchedule'])->name('sales.schedule.print');
-    Route::post('sales/{sale}/ledger/whatsapp', [WhatsAppController::class, 'sendSaleLedger'])->name('sales.ledger.whatsapp');
+    Route::get('sales/{sale}/ledger/whatsapp', [WhatsAppController::class, 'saleLedger'])->name('sales.ledger.whatsapp');
 
     Route::resource('payments', PaymentController::class)->only(['index', 'create', 'store', 'show']);
     Route::get('payments/{payment}/receipt', [PaymentController::class, 'receipt'])->name('payments.receipt');
     Route::get('payments/{payment}/print', [PaymentController::class, 'print'])->name('payments.print');
     Route::get('payments/{payment}/pdf', [PaymentController::class, 'pdf'])->name('payments.pdf');
-    Route::post('payments/{payment}/whatsapp', [WhatsAppController::class, 'sendReceipt'])->name('payments.whatsapp');
-    Route::post('payments/{payment}/confirmation/whatsapp', [WhatsAppController::class, 'sendPaymentConfirmation'])->name('payments.confirmation.whatsapp');
+    Route::get('payments/{payment}/whatsapp', [WhatsAppController::class, 'receipt'])->name('payments.whatsapp');
+    Route::get('payments/{payment}/confirmation-whatsapp', [WhatsAppController::class, 'paymentConfirmation'])->name('payments.confirmation.whatsapp');
 
     Route::get('pending-payments', [PendingPaymentController::class, 'index'])->name('pending.index');
 
+    Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
+    Route::get('reports/monthly-collection', [ReportController::class, 'monthlyCollection'])->name('reports.monthly-collection');
+    Route::get('reports/pending', [ReportController::class, 'pending'])->name('reports.pending');
+    Route::get('reports/overdue', [ReportController::class, 'overdue'])->name('reports.overdue');
+    Route::get('reports/customer-ledgers', [ReportController::class, 'customerLedgers'])->name('reports.customer-ledgers');
+    Route::get('reports/active-accounts', [ReportController::class, 'activeAccounts'])->name('reports.active');
+    Route::get('reports/completed-accounts', [ReportController::class, 'completedAccounts'])->name('reports.completed');
+    Route::get('reports/daily-collection', [ReportController::class, 'dailyCollection'])->name('reports.daily');
+
     Route::middleware('role:admin')->group(function (): void {
-        Route::get('reports', [ReportController::class, 'index'])->name('reports.index');
-        Route::get('reports/payments', [ReportController::class, 'payments'])->name('reports.payments');
-        Route::get('reports/date-wise-payments', [ReportController::class, 'payments'])->name('reports.date-wise-payments');
-        Route::get('reports/monthly-collection', [ReportController::class, 'monthlyCollection'])->name('reports.monthly-collection');
-        Route::get('reports/pending', [ReportController::class, 'pending'])->name('reports.pending');
-        Route::get('reports/overdue', [ReportController::class, 'overdue'])->name('reports.overdue');
-        Route::get('reports/customer-ledgers', [ReportController::class, 'customerLedgers'])->name('reports.customer-ledgers');
-        Route::get('reports/sales', [ReportController::class, 'sales'])->name('reports.sales');
-        Route::get('reports/product-wise-sales', [ReportController::class, 'productWiseSales'])->name('reports.product-wise-sales');
         Route::get('reports/investment', [ReportController::class, 'investment'])->name('reports.investment');
         Route::get('reports/profit', [ReportController::class, 'profit'])->name('reports.profit');
-        Route::get('reports/active-accounts', [ReportController::class, 'activeAccounts'])->name('reports.active');
-        Route::get('reports/completed-accounts', [ReportController::class, 'completedAccounts'])->name('reports.completed');
-        Route::get('reports/defaulters', [ReportController::class, 'defaulters'])->name('reports.defaulters');
-        Route::get('reports/daily-collection', [ReportController::class, 'dailyCollection'])->name('reports.daily');
 
         Route::get('settings', [SettingController::class, 'edit'])->name('settings.edit');
         Route::put('settings', [SettingController::class, 'update'])->name('settings.update');

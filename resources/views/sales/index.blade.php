@@ -23,7 +23,7 @@
 <div class="card">
     <div class="table-responsive">
         <table class="table table-hover mb-0">
-            <thead><tr><th>Account</th><th>Customer</th><th>Product</th><th>Sale</th><th>Paid</th><th>Pending</th><th>Profit</th><th>Status</th><th></th></tr></thead>
+            <thead><tr><th>Account</th><th>Customer</th><th>Product</th><th>Sale</th><th>Paid</th><th>Pending</th>@if(can_view_financials())<th>Profit</th>@endif<th>Status</th><th></th></tr></thead>
             <tbody>
             @forelse($sales as $sale)
                 <tr>
@@ -33,14 +33,14 @@
                     <td>{{ money($sale->installment_sale_price) }}</td>
                     <td>{{ money($sale->total_paid) }}</td>
                     <td>{{ money($sale->pending_balance) }}</td>
-                    <td>{{ money($sale->profit_amount) }}</td>
+                    @if(can_view_financials())<td>{{ money($sale->profit_amount) }}</td>@endif
                     <td>@include('partials.status', ['status' => $sale->status])</td>
                     <td class="text-end">
                         <a href="{{ route('payments.create', ['sale_id' => $sale->id]) }}" class="btn btn-sm btn-success"><i data-lucide="wallet"></i></a>
                     </td>
                 </tr>
             @empty
-                <tr><td colspan="9" class="text-center text-muted py-5">No installment sales found.</td></tr>
+                <tr><td colspan="{{ can_view_financials() ? 9 : 8 }}" class="text-center text-muted py-5">No installment sales found.</td></tr>
             @endforelse
             </tbody>
         </table>

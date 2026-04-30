@@ -5,10 +5,9 @@ namespace App\Services;
 use App\Models\Customer;
 use App\Models\InstallmentSale;
 use App\Models\Payment;
-use Dompdf\Dompdf;
-use Dompdf\Options;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\File;
-use Illuminate\Support\Str;
+use RuntimeException;
 
 class PdfService
 {
@@ -28,7 +27,7 @@ class PdfService
             ->orderBy('id')
             ->get();
 
-        $html = view('pdf.ledger', [
+        $data = [
             'customer' => $customer,
             'sale' => $sale,
             'ledgers' => $ledgers,
@@ -37,18 +36,16 @@ class PdfService
             'balance' => (float) ($ledgers->last()?->balance ?? $customer->currentBalance()),
             'from' => $filters['from'] ?? null,
             'to' => $filters['to'] ?? null,
-        ])->render();
+        ];
 
-        return $this->storeHtml($html, 'ledger-'.$customer->id.'-'.now()->format('YmdHis').'.pdf');
+        return $this->storeView('pdf.ledger', $data, $this->ledgerFilename($customer, $sale));
     }
 
     public function storeReceipt(Payment $payment): string
     {
         $payment->loadMissing(['customer.guarantors', 'sale', 'schedule', 'user']);
 
-        $html = view('pdf.receipt', compact('payment'))->render();
-
-        return $this->storeHtml($html, 'receipt-'.$payment->receipt_number.'-'.now()->format('YmdHis').'.pdf');
+        return $this->storeView('pdf.receipt', compact('payment'), $this->receiptFilename($payment));
     }
 
     public function absolutePath(string $relativePath): string
@@ -56,26 +53,44 @@ class PdfService
         return storage_path('app/'.$relativePath);
     }
 
-    private function storeHtml(string $html, string $filename): string
+    public function receiptFilename(Payment $payment): string
+    {
+        return 'receipt-'.$this->safeFilename($payment->receipt_number ?: (string) $payment->id).'.pdf';
+    }
+
+    public function ledgerFilename(Customer $customer, ?InstallmentSale $sale = null): string
+    {
+        $suffix = $sale?->account_number ?: 'customer-'.$customer->id;
+
+        return 'ledger-'.$this->safeFilename($suffix).'.pdf';
+    }
+
+    private function storeView(string $view, array $data, string $filename): string
     {
         $relativeDirectory = 'generated-pdfs/'.now()->format('Y/m');
         $absoluteDirectory = storage_path('app/'.$relativeDirectory);
         File::ensureDirectoryExists($absoluteDirectory);
 
-        $relativePath = $relativeDirectory.'/'.Str::slug(pathinfo($filename, PATHINFO_FILENAME)).'.pdf';
+        $relativePath = $relativeDirectory.'/'.$this->safeFilename(pathinfo($filename, PATHINFO_FILENAME)).'.pdf';
         $absolutePath = storage_path('app/'.$relativePath);
 
-        $options = new Options();
-        $options->set('isRemoteEnabled', true);
-        $options->set('isHtml5ParserEnabled', true);
+        try {
+            $pdf = Pdf::loadView($view, $data)->setPaper('a4', 'portrait');
 
-        $dompdf = new Dompdf($options);
-        $dompdf->loadHtml($html);
-        $dompdf->setPaper('a4', 'portrait');
-        $dompdf->render();
-
-        File::put($absolutePath, $dompdf->output());
+            File::put($absolutePath, $pdf->output());
+        } catch (\Throwable $exception) {
+            report($exception);
+            throw new RuntimeException('Unable to generate PDF. Please check PDF package installation.', previous: $exception);
+        }
 
         return $relativePath;
+    }
+
+    private function safeFilename(string $value): string
+    {
+        $safe = preg_replace('/[^A-Za-z0-9._-]+/', '-', trim($value));
+        $safe = trim((string) $safe, '-._');
+
+        return $safe !== '' ? $safe : now()->format('YmdHis');
     }
 }
