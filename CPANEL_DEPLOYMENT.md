@@ -91,6 +91,7 @@ From Terminal/SSH:
 ```bash
 cd /home/USERNAME/ftc-app
 composer install --no-dev --optimize-autoloader
+composer dump-autoload
 php artisan key:generate
 ```
 
@@ -142,6 +143,9 @@ If your host uses a strict setup, use cPanel File Manager permissions so the PHP
 
 ```text
 storage
+storage/app/private/pdfs
+storage/app/dompdf-temp
+storage/app/dompdf-fonts
 bootstrap/cache
 ```
 
@@ -186,10 +190,29 @@ Then:
 Ledger and receipt PDFs are generated privately in:
 
 ```text
-storage/app/generated-pdfs
+storage/app/private/pdfs
 ```
 
 PDF generation uses `barryvdh/laravel-dompdf`, installed by Composer. Make sure `storage` is writable by PHP.
+
+If a PDF button shows an error, run:
+
+```bash
+composer install --no-dev --optimize-autoloader
+composer dump-autoload
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
+```
+
+Then check the real error in:
+
+```text
+storage/logs/laravel.log
+```
+
+Search for `PDF generation failed`.
 
 WhatsApp does not require an API token. The portal generates the PDF, then shows a WhatsApp Web fallback page with a Download PDF button, Open WhatsApp button, and prepared message. The admin attaches the downloaded PDF manually in WhatsApp.
 
@@ -261,7 +284,7 @@ At minimum, keep:
 ```text
 .env
 storage/app/public
-storage/app/generated-pdfs
+storage/app/private/pdfs
 database backups
 ```
 
@@ -273,7 +296,7 @@ database backups
 4. Create a new MySQL database and user.
 5. Import the SQL file from the backup ZIP.
 6. Upload backed-up files into `storage/app/public`.
-7. Upload generated PDFs into `storage/app/generated-pdfs` if you need old PDF receipts and ledgers.
+7. Upload generated PDFs into `storage/app/private/pdfs` if you need old PDF receipts and ledgers.
 8. Update `.env` database credentials.
 9. Update `APP_URL` to the new domain.
 10. Set permissions for `storage` and `bootstrap/cache`.

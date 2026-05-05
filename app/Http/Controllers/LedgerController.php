@@ -7,6 +7,7 @@ use App\Services\ExportService;
 use App\Services\PdfService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -58,11 +59,17 @@ class LedgerController extends Controller
                 'to' => $request->string('to')->toString() ?: null,
             ]);
 
-            return response()->download($pdfService->absolutePath($path), $pdfService->ledgerFilename($customer));
+            return response()->download($pdfService->absolutePath($path), basename($path));
         } catch (\Throwable $exception) {
-            report($exception);
+            Log::error('PDF generation failed', [
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'customer_id' => $customer->id,
+                'route' => 'customers.ledger.pdf',
+            ]);
 
-            return back()->with('error', 'Unable to generate PDF. Please check PDF package installation.');
+            return back()->with('error', 'Unable to generate PDF. Please check storage/logs/laravel.log for the exact PDF error.');
         }
     }
 

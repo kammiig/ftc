@@ -48,7 +48,8 @@ class BackupService
 
             if ($type === 'full') {
                 $this->addDirectoryToZip($zip, storage_path('app/public'), 'uploads');
-                $this->addDirectoryToZip($zip, storage_path('app/generated-pdfs'), 'generated-pdfs');
+                $this->addDirectoryToZip($zip, storage_path('app/private/pdfs'), 'generated-pdfs');
+                $this->addDirectoryToZip($zip, storage_path('app/generated-pdfs'), 'legacy-generated-pdfs');
                 $this->addFileIfExists($zip, public_path('assets/images/ftc-logo.png'), 'public/assets/images/ftc-logo.png');
             }
 

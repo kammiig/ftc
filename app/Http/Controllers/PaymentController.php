@@ -9,6 +9,7 @@ use App\Services\InstallmentService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Log;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
@@ -75,7 +76,13 @@ class PaymentController extends Controller
             $payment->forceFill(['receipt_pdf_path' => $pdfService->storeReceipt($payment)])->save();
             $receiptPdfGenerated = true;
         } catch (\Throwable $exception) {
-            report($exception);
+            Log::error('PDF generation failed', [
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'payment_id' => $payment->id,
+                'route' => 'payments.store',
+            ]);
         }
 
         if ($request->boolean('send_receipt_whatsapp')) {
@@ -124,9 +131,15 @@ class PaymentController extends Controller
 
             return response()->download($pdfService->absolutePath($path), $pdfService->receiptFilename($payment));
         } catch (\Throwable $exception) {
-            report($exception);
+            Log::error('PDF generation failed', [
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'payment_id' => $payment->id,
+                'route' => 'payments.pdf',
+            ]);
 
-            return back()->with('error', 'Unable to generate PDF. Please check PDF package installation.');
+            return back()->with('error', 'Unable to generate PDF. Please check storage/logs/laravel.log for the exact PDF error.');
         }
     }
 }

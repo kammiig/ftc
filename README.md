@@ -44,6 +44,7 @@ Change this password immediately after first login.
 ```bash
 cp .env.example .env
 composer install
+composer dump-autoload
 php artisan key:generate
 ```
 
@@ -96,8 +97,9 @@ http://127.0.0.1:8000
 - Schedule print/PDF: sale detail page
 - CSV exports: ledger and major reports
 - Browser PDF export is available through the print pages by choosing `Save as PDF`
-- Generated ledger and receipt PDFs are stored privately under `storage/app/generated-pdfs`
-- Receipt print/PDF includes a light FTC logo watermark and shows only `Authorized Signature`
+- Generated ledger and receipt PDFs are stored privately under `storage/app/private/pdfs`
+- Ledger and receipt PDFs include a light FTC watermark
+- Receipt print/PDF shows only `Authorized Signature`
 
 ## WhatsApp Web Fallback
 
@@ -130,6 +132,31 @@ php artisan view:clear
 php artisan storage:link
 php artisan optimize
 ```
+
+## PDF Troubleshooting on cPanel
+
+If PDF download shows an error, run these from the Laravel project folder on cPanel:
+
+```bash
+composer install --no-dev --optimize-autoloader
+composer dump-autoload
+php artisan config:clear
+php artisan cache:clear
+php artisan view:clear
+php artisan route:clear
+```
+
+Also confirm the PHP user can write to:
+
+```text
+storage
+storage/app/private/pdfs
+storage/app/dompdf-temp
+storage/app/dompdf-fonts
+bootstrap/cache
+```
+
+The actual PDF error is logged in `storage/logs/laravel.log` with the message `PDF generation failed`.
 
 ## GitHub Setup
 
@@ -188,7 +215,7 @@ mysqldump -u DB_USERNAME -p DB_DATABASE > ftc_backup.sql
 Files:
 
 ```bash
-zip -r ftc_files_backup.zip storage/app/public storage/app/generated-pdfs
+zip -r ftc_files_backup.zip storage/app/public storage/app/private/pdfs
 ```
 
 On cPanel, use phpMyAdmin Export for the database and File Manager backup/compress for project files.
@@ -201,7 +228,7 @@ On cPanel, use phpMyAdmin Export for the database and File Manager backup/compre
 4. Create a new MySQL database and database user.
 5. Import the SQL file from the backup ZIP into the new database.
 6. Upload the backed-up uploaded files into `storage/app/public`.
-7. Upload generated PDFs into `storage/app/generated-pdfs` if you need old PDF receipts and ledgers available.
+7. Upload generated PDFs into `storage/app/private/pdfs` if you need old PDF receipts and ledgers available.
 8. Confirm `public/assets/images/ftc-logo.png` exists on the new hosting account.
 9. Update `.env` with the new database credentials.
 10. Update `APP_URL` in `.env` with the new domain.

@@ -29,9 +29,7 @@
             background: #f8fafc;
         }
         .signature-line {
-            border-top: 1px solid #111827;
             width: 220px;
-            padding-top: 8px;
             text-align: center;
         }
         @media print {

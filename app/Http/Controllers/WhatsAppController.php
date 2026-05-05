@@ -12,6 +12,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Http\Response;
 use Illuminate\View\View;
 use Symfony\Component\HttpFoundation\BinaryFileResponse;
@@ -62,9 +63,14 @@ class WhatsAppController extends Controller
         try {
             $result = $callback();
         } catch (\Throwable $exception) {
-            report($exception);
+            Log::error('PDF generation failed', [
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'route' => request()->route()?->getName(),
+            ]);
 
-            return back()->with('error', 'Unable to generate PDF. Please check PDF package installation.');
+            return back()->with('error', 'Unable to generate PDF. Please check storage/logs/laravel.log for the exact PDF error.');
         }
 
         if (($result['status'] ?? null) === 'error') {

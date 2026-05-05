@@ -13,6 +13,18 @@
         opacity: .07;
         z-index: 0;
     }
+    .receipt-pdf-watermark-text {
+        position: absolute;
+        left: 120px;
+        top: 280px;
+        width: 360px;
+        text-align: center;
+        font-size: 76px;
+        font-weight: bold;
+        color: #082c9d;
+        opacity: .07;
+        z-index: 0;
+    }
     .receipt-pdf-content { position: relative; z-index: 1; }
     .receipt-pdf-signature { margin-top: 42px; text-align: right; }
     .receipt-pdf-signature div { display: inline-block; width: 220px; text-align: center; }
@@ -21,6 +33,8 @@
 <div class="receipt-pdf-page">
     @if(company_logo_data_uri())
         <img class="receipt-pdf-watermark" src="{{ company_logo_data_uri() }}" alt="FTC watermark">
+    @else
+        <div class="receipt-pdf-watermark-text">FTC</div>
     @endif
     <div class="receipt-pdf-content">
         <h2>Payment Receipt</h2>

@@ -7,7 +7,9 @@ use App\Models\InstallmentSale;
 use App\Models\Payment;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use RuntimeException;
+use Throwable;
 
 class PdfService
 {
@@ -38,7 +40,7 @@ class PdfService
             'to' => $filters['to'] ?? null,
         ];
 
-        return $this->storeView('pdf.ledger', $data, $this->ledgerFilename($customer, $sale));
+        return $this->storeView('customers.ledger-pdf', $data, $this->ledgerFilename($customer, $sale));
     }
 
     public function storeReceipt(Payment $payment): string
@@ -60,14 +62,18 @@ class PdfService
 
     public function ledgerFilename(Customer $customer, ?InstallmentSale $sale = null): string
     {
-        $suffix = $sale?->account_number ?: 'customer-'.$customer->id;
+        $suffix = $customer->name ?: 'customer-'.$customer->id;
 
-        return 'ledger-'.$this->safeFilename($suffix).'.pdf';
+        if ($sale?->account_number) {
+            $suffix .= '-'.$sale->account_number;
+        }
+
+        return 'ledger-'.$this->safeFilename($suffix).'-'.now()->format('Ymd').'.pdf';
     }
 
     private function storeView(string $view, array $data, string $filename): string
     {
-        $relativeDirectory = 'generated-pdfs/'.now()->format('Y/m');
+        $relativeDirectory = 'private/pdfs/'.now()->format('Y/m');
         $absoluteDirectory = storage_path('app/'.$relativeDirectory);
         File::ensureDirectoryExists($absoluteDirectory);
 
@@ -75,15 +81,68 @@ class PdfService
         $absolutePath = storage_path('app/'.$relativePath);
 
         try {
-            $pdf = Pdf::loadView($view, $data)->setPaper('a4', 'portrait');
+            if (! class_exists(Pdf::class)) {
+                throw new RuntimeException('barryvdh/laravel-dompdf is not installed. Run composer install, composer dump-autoload, and clear Laravel caches.');
+            }
 
-            File::put($absolutePath, $pdf->output());
-        } catch (\Throwable $exception) {
-            report($exception);
-            throw new RuntimeException('Unable to generate PDF. Please check PDF package installation.', previous: $exception);
+            $this->prepareDompdfStorage();
+
+            $pdf = Pdf::loadView($view, $data)->setPaper('a4', 'portrait');
+            $pdf->setOption($this->dompdfOptions());
+
+            $bytes = File::put($absolutePath, $pdf->output());
+
+            if ($bytes === false || ! File::exists($absolutePath)) {
+                throw new RuntimeException('PDF file could not be written. Check storage and bootstrap/cache permissions.');
+            }
+        } catch (Throwable $exception) {
+            $this->logFailure($exception, $view, $absolutePath);
+
+            throw new RuntimeException('Unable to generate PDF. Please check storage/logs/laravel.log for the exact PDF error.', 0, $exception);
         }
 
         return $relativePath;
+    }
+
+    private function prepareDompdfStorage(): void
+    {
+        File::ensureDirectoryExists(storage_path('app/dompdf-temp'));
+        File::ensureDirectoryExists(storage_path('app/dompdf-fonts'));
+        File::ensureDirectoryExists(storage_path('logs'));
+    }
+
+    private function dompdfOptions(): array
+    {
+        return [
+            'defaultFont' => 'DejaVu Sans',
+            'tempDir' => storage_path('app/dompdf-temp'),
+            'fontDir' => storage_path('app/dompdf-fonts'),
+            'fontCache' => storage_path('app/dompdf-fonts'),
+            'logOutputFile' => storage_path('logs/dompdf.htm'),
+            'chroot' => base_path(),
+            'isRemoteEnabled' => false,
+            'isHtml5ParserEnabled' => true,
+        ];
+    }
+
+    private function logFailure(Throwable $exception, string $view, string $absolutePath): void
+    {
+        $root = $exception;
+
+        while ($root->getPrevious()) {
+            $root = $root->getPrevious();
+        }
+
+        Log::error('PDF generation failed', [
+            'message' => $root->getMessage(),
+            'file' => $root->getFile(),
+            'line' => $root->getLine(),
+            'view' => $view,
+            'target_path' => $absolutePath,
+            'package' => 'barryvdh/laravel-dompdf',
+        ]);
+
+        report($exception);
     }
 
     private function safeFilename(string $value): string

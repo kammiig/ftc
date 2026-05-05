@@ -9,6 +9,7 @@ use App\Models\Payment;
 use App\Models\User;
 use App\Models\WhatsAppMessageLog;
 use Illuminate\Support\Facades\File;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\URL;
 
 class WhatsAppService
@@ -72,7 +73,13 @@ class WhatsAppService
         try {
             $pdfPath = $this->receiptPdfPath($payment);
         } catch (\Throwable $exception) {
-            report($exception);
+            Log::error('PDF generation failed', [
+                'message' => $exception->getMessage(),
+                'file' => $exception->getFile(),
+                'line' => $exception->getLine(),
+                'payment_id' => $payment->id,
+                'message_type' => 'payment_confirmation',
+            ]);
         }
         $paymentDate = $payment->payment_date?->format('d M Y') ?: '-';
 
