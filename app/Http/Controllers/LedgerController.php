@@ -59,7 +59,9 @@ class LedgerController extends Controller
                 'to' => $request->string('to')->toString() ?: null,
             ]);
 
-            return response()->download($pdfService->absolutePath($path), basename($path));
+            return response()->download($pdfService->absolutePath($path), basename($path), [
+                'Content-Type' => 'application/pdf',
+            ]);
         } catch (\Throwable $exception) {
             Log::error('PDF generation failed', [
                 'message' => $exception->getMessage(),

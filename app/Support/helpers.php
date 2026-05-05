@@ -36,9 +36,21 @@ if (! function_exists('file_data_uri')) {
             return null;
         }
 
-        $mime = mime_content_type($absolutePath) ?: 'application/octet-stream';
+        $mime = function_exists('mime_content_type') ? @mime_content_type($absolutePath) : null;
 
-        return 'data:'.$mime.';base64,'.base64_encode(file_get_contents($absolutePath));
+        if (! $mime) {
+            $mime = match (strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION))) {
+                'jpg', 'jpeg' => 'image/jpeg',
+                'png' => 'image/png',
+                'gif' => 'image/gif',
+                'webp' => 'image/webp',
+                default => 'application/octet-stream',
+            };
+        }
+
+        $contents = @file_get_contents($absolutePath);
+
+        return $contents === false ? null : 'data:'.$mime.';base64,'.base64_encode($contents);
     }
 }
 

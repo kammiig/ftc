@@ -27,10 +27,6 @@
         position: relative;
         z-index: 1;
     }
-    .receipt-signature {
-        width: 220px;
-        text-align: center;
-    }
 </style>
 @endpush
 
@@ -77,10 +73,7 @@
         </table>
 
         <p class="text-muted">{{ company_setting('receipt_footer_text') }}</p>
-        <div class="d-flex justify-content-between mt-5">
-            <div>Customer Signature</div>
-            <div class="receipt-signature">Authorized Signature</div>
-        </div>
+        <div class="mt-5">Customer Signature</div>
     </div>
 </div>
 @endsection

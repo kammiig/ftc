@@ -26,8 +26,6 @@
         z-index: 0;
     }
     .receipt-pdf-content { position: relative; z-index: 1; }
-    .receipt-pdf-signature { margin-top: 42px; text-align: right; }
-    .receipt-pdf-signature div { display: inline-block; width: 220px; text-align: center; }
 </style>
 
 <div class="receipt-pdf-page">
@@ -64,9 +62,6 @@
 
         <p class="muted">{{ company_setting('receipt_footer_text') }}</p>
 
-        <div class="receipt-pdf-signature">
-            <div>Authorized Signature</div>
-        </div>
     </div>
 </div>
 @endsection

@@ -21,9 +21,6 @@
         .grid { display: table; width: 100%; margin-bottom: 10px; }
         .col { display: table-cell; width: 50%; vertical-align: top; }
         .summary .col { width: 25%; border: 1px solid #d1d5db; padding: 8px; }
-        .signature { margin-top: 42px; text-align: right; }
-        .signature-box { display: inline-block; width: 220px; border-top: 1px solid #111827; padding-top: 6px; text-align: center; }
-        .signature img { max-width: 160px; max-height: 60px; display: block; margin: 0 auto 4px; }
     </style>
 </head>
 <body>

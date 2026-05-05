@@ -129,7 +129,9 @@ class PaymentController extends Controller
                 $payment->forceFill(['receipt_pdf_path' => $path])->save();
             }
 
-            return response()->download($pdfService->absolutePath($path), $pdfService->receiptFilename($payment));
+            return response()->download($pdfService->absolutePath($path), $pdfService->receiptFilename($payment), [
+                'Content-Type' => 'application/pdf',
+            ]);
         } catch (\Throwable $exception) {
             Log::error('PDF generation failed', [
                 'message' => $exception->getMessage(),

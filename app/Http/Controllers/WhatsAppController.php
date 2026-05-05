@@ -55,7 +55,9 @@ class WhatsAppController extends Controller
             return response('PDF file is missing. Please generate the document again from the portal.', 404);
         }
 
-        return response()->download($path);
+        return response()->download($path, basename($path), [
+            'Content-Type' => 'application/pdf',
+        ]);
     }
 
     private function fallbackView(callable $callback, string $title): View|RedirectResponse

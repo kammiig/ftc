@@ -18,7 +18,7 @@
         <button class="btn btn-outline-primary"><i data-lucide="filter"></i></button>
     </form>
     <div class="d-flex gap-2">
-        <a href="{{ route('customers.ledger.print', array_filter(['customer' => $customer->id, 'from' => $from, 'to' => $to])) }}" class="btn btn-outline-dark"><i data-lucide="printer"></i> Print / PDF</a>
+        <a href="{{ route('customers.ledger.pdf', array_filter(['customer' => $customer->id, 'from' => $from, 'to' => $to])) }}" class="btn btn-outline-dark"><i data-lucide="printer"></i> Print / PDF</a>
         <a href="{{ route('customers.ledger.pdf', array_filter(['customer' => $customer->id, 'from' => $from, 'to' => $to])) }}" class="btn btn-outline-primary"><i data-lucide="file-down"></i> PDF</a>
         <a href="{{ route('customers.ledger.export', array_filter(['customer' => $customer->id, 'from' => $from, 'to' => $to])) }}" class="btn btn-outline-success"><i data-lucide="download"></i> CSV</a>
         <a href="{{ route('customers.ledger.whatsapp', array_filter(['customer' => $customer->id, 'from' => $from, 'to' => $to])) }}" class="btn btn-success"><i data-lucide="send"></i> WhatsApp</a>

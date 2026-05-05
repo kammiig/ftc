@@ -2,7 +2,43 @@
 
 @section('title', 'Customer Ledger')
 
+@push('styles')
+<style>
+    .ledger-print-page {
+        position: relative;
+        overflow: hidden;
+        min-height: 860px;
+    }
+    .ledger-print-watermark {
+        position: absolute;
+        left: 50%;
+        top: 50%;
+        width: 430px;
+        max-width: 68%;
+        opacity: .07;
+        transform: translate(-50%, -50%);
+        z-index: 0;
+        pointer-events: none;
+    }
+    .ledger-print-content {
+        position: relative;
+        z-index: 1;
+    }
+    @media print {
+        .ledger-print-watermark {
+            position: fixed;
+            top: 52%;
+            -webkit-print-color-adjust: exact;
+            print-color-adjust: exact;
+        }
+    }
+</style>
+@endpush
+
 @section('content')
+<div class="ledger-print-page">
+<img class="ledger-print-watermark" src="{{ company_logo_url() }}" alt="FTC watermark">
+<div class="ledger-print-content">
 <div class="mb-3">
     <h2 class="h5 mb-2">Customer Ledger</h2>
     <div class="row">
@@ -83,8 +119,7 @@
 </table>
 
 <p class="text-muted">{{ company_setting('ledger_footer_text') }}</p>
-<div class="d-flex justify-content-between mt-5">
-    <div>Printed Date: {{ now()->format('d M Y') }}</div>
-    <div class="signature-line">Authorized Signature</div>
+<div class="mt-5">Printed Date: {{ now()->format('d M Y') }}</div>
+</div>
 </div>
 @endsection

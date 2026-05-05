@@ -113,15 +113,6 @@
         .summary-table td {
             width: 33.333%;
         }
-        .signature {
-            margin-top: 34px;
-            text-align: right;
-        }
-        .signature-box {
-            display: inline-block;
-            width: 220px;
-            text-align: center;
-        }
     </style>
 </head>
 <body>
@@ -270,9 +261,6 @@
 
         <p class="muted">{{ company_setting('ledger_footer_text') }}</p>
 
-        <div class="signature">
-            <div class="signature-box">Authorized Signature</div>
-        </div>
     </div>
 </div>
 </body>
