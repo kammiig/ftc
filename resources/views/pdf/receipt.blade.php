@@ -62,6 +62,7 @@
 
         <p class="muted">{{ company_setting('receipt_footer_text') }}</p>
 
+        @include('partials.authorized-signature', ['context' => 'receipt', 'pdf' => true])
     </div>
 </div>
 @endsection

@@ -113,6 +113,33 @@
         .summary-table td {
             width: 33.333%;
         }
+        .footer-row {
+            display: table;
+            width: 100%;
+            margin-top: 28px;
+        }
+        .footer-date {
+            display: table-cell;
+            width: 50%;
+            vertical-align: bottom;
+        }
+        .footer-signature {
+            display: table-cell;
+            width: 50%;
+            vertical-align: bottom;
+            text-align: right;
+        }
+        .pdf-authorized-signature {
+            display: inline-block;
+            width: 220px;
+            text-align: center;
+        }
+        .pdf-authorized-signature img {
+            display: block;
+            max-width: 170px;
+            max-height: 58px;
+            margin: 0 auto 5px;
+        }
     </style>
 </head>
 <body>
@@ -261,6 +288,12 @@
 
         <p class="muted">{{ company_setting('ledger_footer_text') }}</p>
 
+        <div class="footer-row">
+            <div class="footer-date">Printed Date: {{ now()->format('d M Y') }}</div>
+            <div class="footer-signature">
+                @include('partials.authorized-signature', ['context' => 'ledger', 'pdf' => true])
+            </div>
+        </div>
     </div>
 </div>
 </body>

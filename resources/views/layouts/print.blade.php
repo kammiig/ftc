@@ -32,6 +32,17 @@
             width: 220px;
             text-align: center;
         }
+        .authorized-signature {
+            width: 240px;
+            text-align: center;
+        }
+        .authorized-signature img {
+            display: block;
+            max-width: 180px;
+            max-height: 62px;
+            object-fit: contain;
+            margin: 0 auto 6px;
+        }
         @media print {
             .no-print {
                 display: none !important;

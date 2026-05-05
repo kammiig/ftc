@@ -3,6 +3,22 @@
 @section('title', 'Payment Receipt')
 @section('subtitle', $payment->receipt_number)
 
+@push('styles')
+<style>
+    .authorized-signature {
+        width: 240px;
+        text-align: center;
+    }
+    .authorized-signature img {
+        display: block;
+        max-width: 180px;
+        max-height: 62px;
+        object-fit: contain;
+        margin: 0 auto 6px;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="toolbar mb-3">
     <div class="d-flex align-items-center gap-2">
@@ -57,6 +73,9 @@
                 <div class="text-muted small">Remarks</div>
                 <div>{{ $payment->remarks ?: '-' }}</div>
             </div>
+        </div>
+        <div class="d-flex justify-content-end mt-4">
+            @include('partials.authorized-signature', ['context' => 'receipt'])
         </div>
     </div>
 </div>

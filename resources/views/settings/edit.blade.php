@@ -50,12 +50,27 @@
                             <textarea class="form-control" name="ledger_footer_text" rows="2">{{ old('ledger_footer_text', $settings['ledger_footer_text'] ?? '') }}</textarea>
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Signature name</label>
-                            <input class="form-control" name="signature_name" value="{{ old('signature_name', $settings['signature_name'] ?? 'Malik') }}">
+                            <label class="form-label">Authorised person name</label>
+                            <input class="form-control" name="authorized_person_name" value="{{ old('authorized_person_name', $settings['authorized_person_name'] ?? '') }}">
                         </div>
                         <div class="col-md-6">
-                            <label class="form-label">Signature image</label>
-                            <input class="form-control" type="file" name="signature_image" accept="image/*">
+                            <label class="form-label">Digital signature image</label>
+                            <input class="form-control" type="file" name="digital_signature_image" accept="image/png,image/jpeg,image/gif">
+                            <div class="form-text">Use PNG, JPG, JPEG, or GIF for PDF compatibility.</div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input type="hidden" name="show_signature_on_ledger" value="0">
+                                <input class="form-check-input" type="checkbox" name="show_signature_on_ledger" value="1" id="show_signature_on_ledger" @checked(old('show_signature_on_ledger', $settings['show_signature_on_ledger'] ?? '1'))>
+                                <label class="form-check-label" for="show_signature_on_ledger">Show signature on ledger</label>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="form-check form-switch">
+                                <input type="hidden" name="show_signature_on_receipt" value="0">
+                                <input class="form-check-input" type="checkbox" name="show_signature_on_receipt" value="1" id="show_signature_on_receipt" @checked(old('show_signature_on_receipt', $settings['show_signature_on_receipt'] ?? '1'))>
+                                <label class="form-check-label" for="show_signature_on_receipt">Show signature on receipt</label>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -67,9 +82,9 @@
                     <div class="form-section-title">Logo</div>
                     <img src="{{ company_logo_url() }}" class="img-fluid rounded mb-3" alt="Company logo" style="max-height: 180px; object-fit: contain">
                     <input type="file" class="form-control mb-3" name="company_logo" accept="image/*">
-                    @if(($settings['signature_image'] ?? null))
+                    @if(($settings['digital_signature_image'] ?? null))
                         <div class="form-section-title mt-3">Current Signature</div>
-                        <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['signature_image']) }}" class="img-fluid rounded mb-3" alt="Signature" style="max-height: 90px; object-fit: contain">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['digital_signature_image']) }}" class="img-fluid rounded mb-3" alt="Signature" style="max-height: 90px; object-fit: contain">
                     @endif
                     <button class="btn btn-primary w-100"><i data-lucide="save"></i> Save Settings</button>
                 </div>

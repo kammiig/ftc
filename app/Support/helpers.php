@@ -38,14 +38,21 @@ if (! function_exists('file_data_uri')) {
 
         $mime = function_exists('mime_content_type') ? @mime_content_type($absolutePath) : null;
 
-        if (! $mime) {
-            $mime = match (strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION))) {
-                'jpg', 'jpeg' => 'image/jpeg',
-                'png' => 'image/png',
-                'gif' => 'image/gif',
-                'webp' => 'image/webp',
-                default => 'application/octet-stream',
-            };
+        $mime = match ($mime) {
+            'image/x-png' => 'image/png',
+            'image/pjpeg' => 'image/jpeg',
+            default => $mime,
+        };
+
+        $mime ??= match (strtolower(pathinfo($absolutePath, PATHINFO_EXTENSION))) {
+            'jpg', 'jpeg' => 'image/jpeg',
+            'png' => 'image/png',
+            'gif' => 'image/gif',
+            default => null,
+        };
+
+        if (! in_array($mime, ['image/jpeg', 'image/png', 'image/gif'], true)) {
+            return null;
         }
 
         $contents = @file_get_contents($absolutePath);
@@ -70,16 +77,53 @@ if (! function_exists('company_logo_data_uri')) {
 if (! function_exists('signature_name')) {
     function signature_name(): string
     {
-        return company_setting('signature_name', 'Malik') ?: 'Malik';
+        return authorized_signature_name();
     }
 }
 
 if (! function_exists('signature_image_data_uri')) {
     function signature_image_data_uri(): ?string
     {
-        $signature = company_setting('signature_image');
+        return authorized_signature_data_uri();
+    }
+}
+
+if (! function_exists('authorized_signature_name')) {
+    function authorized_signature_name(): string
+    {
+        return trim((string) company_setting('authorized_person_name', ''));
+    }
+}
+
+if (! function_exists('authorized_signature_data_uri')) {
+    function authorized_signature_data_uri(): ?string
+    {
+        $signature = company_setting('digital_signature_image');
 
         return $signature ? file_data_uri(storage_path('app/public/'.$signature)) : null;
+    }
+}
+
+if (! function_exists('setting_bool')) {
+    function setting_bool(string $key, bool $default = false): bool
+    {
+        $value = company_setting($key, $default ? '1' : '0');
+
+        return filter_var($value, FILTER_VALIDATE_BOOLEAN);
+    }
+}
+
+if (! function_exists('show_signature_on_ledger')) {
+    function show_signature_on_ledger(): bool
+    {
+        return setting_bool('show_signature_on_ledger', true);
+    }
+}
+
+if (! function_exists('show_signature_on_receipt')) {
+    function show_signature_on_receipt(): bool
+    {
+        return setting_bool('show_signature_on_receipt', true);
     }
 }
 

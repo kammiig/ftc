@@ -3,6 +3,22 @@
 @section('title', 'Customer Ledger')
 @section('subtitle', $customer->name)
 
+@push('styles')
+<style>
+    .authorized-signature {
+        width: 240px;
+        text-align: center;
+    }
+    .authorized-signature img {
+        display: block;
+        max-width: 180px;
+        max-height: 62px;
+        object-fit: contain;
+        margin: 0 auto 6px;
+    }
+</style>
+@endpush
+
 @section('content')
 <div class="toolbar mb-3">
     <div class="d-flex align-items-center gap-2">
@@ -66,5 +82,10 @@
             </tfoot>
         </table>
     </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-end mt-4">
+    <p class="text-muted mb-0">{{ company_setting('ledger_footer_text') }}</p>
+    @include('partials.authorized-signature', ['context' => 'ledger'])
 </div>
 @endsection

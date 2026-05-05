@@ -20,7 +20,11 @@ class SettingSeeder extends Seeder
             'ledger_footer_text' => 'This ledger is system generated and subject to verification.',
             'payment_methods' => 'Cash,Bank Transfer,JazzCash,Easypaisa,Card,Other',
             'default_due_day' => '1',
-            'signature_name' => 'Malik',
+            'authorized_person_name' => '',
+            'digital_signature_image' => '',
+            'show_signature_on_ledger' => '1',
+            'show_signature_on_receipt' => '1',
+            'signature_name' => '',
             'signature_image' => '',
         ];
 

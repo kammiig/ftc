@@ -87,8 +87,9 @@ class PdfService
 
             $this->prepareDompdfStorage();
 
-            $pdf = Pdf::loadView($view, $data)->setPaper('a4', 'portrait');
-            $pdf->setOption($this->dompdfOptions());
+            $pdf = Pdf::setOption($this->dompdfOptions())
+                ->loadView($view, $data)
+                ->setPaper('a4', 'portrait');
 
             $bytes = File::put($absolutePath, $pdf->output());
 
@@ -96,9 +97,10 @@ class PdfService
                 throw new RuntimeException('PDF file could not be written. Check storage and bootstrap/cache permissions.');
             }
         } catch (Throwable $exception) {
-            $this->logFailure($exception, $view, $absolutePath);
+            $root = $this->rootException($exception);
+            $this->logFailure($exception, $root, $view, $absolutePath);
 
-            throw new RuntimeException('Unable to generate PDF. Please check storage/logs/laravel.log for the exact PDF error.', 0, $exception);
+            throw new RuntimeException('Unable to generate PDF: '.$root->getMessage(), 0, $exception);
         }
 
         return $relativePath;
@@ -125,7 +127,7 @@ class PdfService
         ];
     }
 
-    private function logFailure(Throwable $exception, string $view, string $absolutePath): void
+    private function rootException(Throwable $exception): Throwable
     {
         $root = $exception;
 
@@ -133,6 +135,11 @@ class PdfService
             $root = $root->getPrevious();
         }
 
+        return $root;
+    }
+
+    private function logFailure(Throwable $exception, Throwable $root, string $view, string $absolutePath): void
+    {
         Log::error('PDF generation failed', [
             'message' => $root->getMessage(),
             'file' => $root->getFile(),

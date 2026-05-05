@@ -73,7 +73,10 @@
         </table>
 
         <p class="text-muted">{{ company_setting('receipt_footer_text') }}</p>
-        <div class="mt-5">Customer Signature</div>
+        <div class="d-flex justify-content-between align-items-end mt-5">
+            <div>Customer Signature</div>
+            @include('partials.authorized-signature', ['context' => 'receipt'])
+        </div>
     </div>
 </div>
 @endsection

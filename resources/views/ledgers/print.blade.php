@@ -119,7 +119,10 @@
 </table>
 
 <p class="text-muted">{{ company_setting('ledger_footer_text') }}</p>
-<div class="mt-5">Printed Date: {{ now()->format('d M Y') }}</div>
+<div class="d-flex justify-content-between align-items-end mt-5">
+    <div>Printed Date: {{ now()->format('d M Y') }}</div>
+    @include('partials.authorized-signature', ['context' => 'ledger'])
+</div>
 </div>
 </div>
 @endsection

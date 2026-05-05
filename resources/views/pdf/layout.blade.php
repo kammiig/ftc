@@ -21,6 +21,8 @@
         .grid { display: table; width: 100%; margin-bottom: 10px; }
         .col { display: table-cell; width: 50%; vertical-align: top; }
         .summary .col { width: 25%; border: 1px solid #d1d5db; padding: 8px; }
+        .pdf-authorized-signature { width: 220px; text-align: center; margin-left: auto; margin-top: 34px; }
+        .pdf-authorized-signature img { display: block; max-width: 170px; max-height: 58px; margin: 0 auto 5px; }
     </style>
 </head>
 <body>

@@ -141,7 +141,7 @@ class PaymentController extends Controller
                 'route' => 'payments.pdf',
             ]);
 
-            return back()->with('error', 'Unable to generate PDF. Please check storage/logs/laravel.log for the exact PDF error.');
+            return back()->with('error', $exception->getMessage());
         }
     }
 }

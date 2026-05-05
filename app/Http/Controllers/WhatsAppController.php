@@ -72,7 +72,7 @@ class WhatsAppController extends Controller
                 'route' => request()->route()?->getName(),
             ]);
 
-            return back()->with('error', 'Unable to generate PDF. Please check storage/logs/laravel.log for the exact PDF error.');
+            return back()->with('error', $exception->getMessage());
         }
 
         if (($result['status'] ?? null) === 'error') {
