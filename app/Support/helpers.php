@@ -91,14 +91,22 @@ if (! function_exists('signature_image_data_uri')) {
 if (! function_exists('authorized_signature_name')) {
     function authorized_signature_name(): string
     {
-        return trim((string) company_setting('authorized_person_name', ''));
+        $name = trim((string) company_setting('authorized_person_name', ''));
+
+        if ($name !== '') {
+            return $name;
+        }
+
+        $legacyName = trim((string) company_setting('signature_name', ''));
+
+        return strtolower($legacyName) === 'malik' ? '' : $legacyName;
     }
 }
 
 if (! function_exists('authorized_signature_data_uri')) {
     function authorized_signature_data_uri(): ?string
     {
-        $signature = company_setting('digital_signature_image');
+        $signature = company_setting('digital_signature_image') ?: company_setting('signature_image');
 
         return $signature ? file_data_uri(storage_path('app/public/'.$signature)) : null;
     }

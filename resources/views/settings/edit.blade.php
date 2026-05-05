@@ -51,7 +51,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Authorised person name</label>
-                            <input class="form-control" name="authorized_person_name" value="{{ old('authorized_person_name', $settings['authorized_person_name'] ?? '') }}">
+                            <input class="form-control" name="authorized_person_name" value="{{ old('authorized_person_name', $settings['authorized_person_name'] ?? ($settings['signature_name'] ?? '')) }}">
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Digital signature image</label>
@@ -82,9 +82,9 @@
                     <div class="form-section-title">Logo</div>
                     <img src="{{ company_logo_url() }}" class="img-fluid rounded mb-3" alt="Company logo" style="max-height: 180px; object-fit: contain">
                     <input type="file" class="form-control mb-3" name="company_logo" accept="image/*">
-                    @if(($settings['digital_signature_image'] ?? null))
+                    @if(($settings['digital_signature_image'] ?? $settings['signature_image'] ?? null))
                         <div class="form-section-title mt-3">Current Signature</div>
-                        <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['digital_signature_image']) }}" class="img-fluid rounded mb-3" alt="Signature" style="max-height: 90px; object-fit: contain">
+                        <img src="{{ \Illuminate\Support\Facades\Storage::url($settings['digital_signature_image'] ?? $settings['signature_image']) }}" class="img-fluid rounded mb-3" alt="Signature" style="max-height: 90px; object-fit: contain">
                     @endif
                     <button class="btn btn-primary w-100"><i data-lucide="save"></i> Save Settings</button>
                 </div>

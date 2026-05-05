@@ -87,9 +87,7 @@ class PdfService
 
             $this->prepareDompdfStorage();
 
-            $pdf = Pdf::setOption($this->dompdfOptions())
-                ->loadView($view, $data)
-                ->setPaper('a4', 'portrait');
+            $pdf = Pdf::loadView($view, $data)->setPaper('a4', 'portrait');
 
             $bytes = File::put($absolutePath, $pdf->output());
 
@@ -111,20 +109,6 @@ class PdfService
         File::ensureDirectoryExists(storage_path('app/dompdf-temp'));
         File::ensureDirectoryExists(storage_path('app/dompdf-fonts'));
         File::ensureDirectoryExists(storage_path('logs'));
-    }
-
-    private function dompdfOptions(): array
-    {
-        return [
-            'defaultFont' => 'DejaVu Sans',
-            'tempDir' => storage_path('app/dompdf-temp'),
-            'fontDir' => storage_path('app/dompdf-fonts'),
-            'fontCache' => storage_path('app/dompdf-fonts'),
-            'logOutputFile' => storage_path('logs/dompdf.htm'),
-            'chroot' => base_path(),
-            'isRemoteEnabled' => false,
-            'isHtml5ParserEnabled' => true,
-        ];
     }
 
     private function rootException(Throwable $exception): Throwable
